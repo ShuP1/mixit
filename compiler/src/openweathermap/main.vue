@@ -1,0 +1,138 @@
+<template lang="pug">
+.openweathermap
+  .header(@click="showSettings = !showSettings") OpenWeatherMap
+  .settings(v-show="showSettings")
+    p
+      label(for="token") Token:
+      input#token(:value="token" @keyup.enter="setOption('token', $event.target.value)")
+    p
+      label(for="update") Update interval:
+      input#update(type="number" :value="update" @keyup.enter="setOption('update', parseInt($event.target.value))")
+    p
+      button(@click="showAdd = true") Add city
+  template(v-if="weathers.length > 0 || cities.length == 0")
+    .list
+      .weather(v-for="(city, id) in weathers" :class="{ selected: selected == id }" @click.stop.prevent="makeSelect(id)")
+        .main(v-for="main in city.weather")
+          p {{ main.description }}
+          .ic
+            img(:src="`https://openweathermap.org/img/w/${main.icon}.png`" :alt="main.main")
+        .header
+          | {{ city.name }}&nbsp;
+          img.icon(:src="`https://openweathermap.org/images/flags/${city.sys.country.toLowerCase()}.png`" :alt="city.sys.country" :title="city.sys.country")
+        .data
+          | {{ city.main.temp }}°C ─ {{ city.main.humidity }}%
+      input.weather(v-show="showAdd" placeholder="city id" @keyup.enter="addCity(parseInt($event.target.value))")
+    .forecast
+      template(v-if="forecast")
+        .list
+          .line(v-for="line in forecast")
+            | {{ formatDate(line.dt) }}
+            .data
+              | {{ line.main.temp }}°C ─ {{ line.main.humidity }}%
+            .main(v-for="main in line.weather")
+              .ic
+                img(:src="`https://openweathermap.org/img/w/${main.icon}.png`" :alt="main.main")
+              p {{ main.description }}
+      template(v-else) Loading...
+  template(v-else) Loading...
+</template>
+
+<script>
+import { emitErrorMixin, saveOptionsMixin } from '../core/tools'
+
+export default {
+  name: 'openweathermap',
+  components: {},
+  mixins: [ emitErrorMixin, saveOptionsMixin ],
+  props: {
+    token: String,
+    cities: {
+      type: Array,
+      default: function () {
+        return []
+      }
+    },
+    timeout: {
+      default: 5000,
+      type: Number
+    },
+    update: {
+      default: 10 * 60, //10min
+      type: Number
+    },
+    lang: {
+      default: 'fr',
+      type: String
+    }
+  },
+  data() {
+    return {
+      rest: axios.create({
+        baseURL: 'https://api.openweathermap.org/data/2.5/',
+        params: {
+          appid: this.token, units: 'metric', lang: this.lang
+        },
+        timeout: this.timeout
+      }),
+      weathers: [],
+      forecast: null,
+      selected: 0,
+      showSettings: false,
+      showAdd: this.cities.length == 0
+    };
+  },
+  methods: {
+    makeSelect(id) {
+      this.selected = id
+      this.forecast = null
+      this.loadForecast()
+    },
+    updateData() {
+      for (let i = 0; i < this.weathers.length; i++) {
+        const weather = this.weathers[i];
+        this.getWeather({ id: weather.id })
+          .then(res => this.$set(this.weathers, i, res.data))
+      }
+      this.loadForecast()
+    },
+    getWeather(params) {
+      return this.rest.get('weather', { params: params })
+        .catch(this.emitError)
+    },
+    loadForecast() {
+      if(this.weathers[this.selected]) {
+        this.rest.get('forecast', { params: {
+          id: this.weathers[this.selected].id
+        }})
+          .then(res => this.forecast = res.data.list)
+          .catch(this.emitError)
+      }
+    },
+    formatDate(dt) {
+       const date = new Date(dt * 1000)
+       return `${date.toLocaleDateString()} ${date.getHours()}h`
+    },
+    addCity(id) {
+      const options = {...this.$props}
+      options.cities.push({id: id})
+      this.saveOptions(options)
+    },
+    setOption(name, value) {
+      const options = {...this.$props}
+      options[name] = value
+      this.saveOptions(options)
+    }
+  },
+  created() {
+    axios.all(
+      this.cities.map(
+        city => this.getWeather(city)
+          .then(res => this.weathers.push(res.data))))
+      .then(this.loadForecast)
+
+    if(this.update > 0)
+      setInterval(this.updateData, this.update * 1000)
+  }
+}
+</script>

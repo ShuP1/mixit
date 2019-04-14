@@ -1,0 +1,195 @@
+$avatarSize: 3em
+$borderRadius: .3em
+
+$backColor: #333
+$tileColor: #222
+$darkColor: #111
+$halfColor: #999
+$foreColor: #eee
+
+@mixin tile
+  margin: $borderRadius
+  background-color: $tileColor
+  border-radius: $borderRadius
+  padding: $borderRadius
+
+*
+  margin: 0
+  padding: 0
+
+body
+  background-color: $backColor
+  color: $foreColor
+
+a
+  text-decoration: none
+  color: #aaa
+
+.icon
+  width: 1em
+  height: 1em
+  vertical-align: middle
+
+.text-icon
+  font-weight: bold
+  font-size: 1.2em
+
+.letter
+  margin: 0 .5em
+
+.colored
+  color: orange
+
+#errors
+  position: absolute
+  .error
+    @include tile
+
+#manager
+  position: absolute
+  bottom: 0
+
+#services
+  height: 100vh
+  overflow: hidden
+  display: flex
+  & > div
+    flex: 1
+
+.mastodon
+  .header, .settings, .client .list > div
+    @include tile
+  .header
+    font-size: large
+    text-align: center
+    font-weight: bold
+  .client
+    display: flex
+    height: 100vh
+    overflow: hidden
+    .list
+      height: 100%
+      overflow-y: auto
+      min-height: min-content
+    .statues
+      flex: 1
+    .notifications
+      max-width: 33%
+
+    .account
+      .name
+        margin: 0 $borderRadius
+        color: #eee
+      .avatar
+        float: left
+        border-radius: $borderRadius
+        width: $avatarSize
+        height: $avatarSize
+        background-size: $avatarSize $avatarSize
+      div
+        display: inline-block
+
+    .status, .notification
+      min-height: $avatarSize
+      .content
+        margin: .5em .5em .5em .5em + $avatarSize
+        .reblog
+          font-size: .8em
+        .spoiler
+          margin-bottom: .5em
+        .media
+          margin: .5em
+          position: relative
+          display: inline-block
+          & > *
+            max-height: 10em
+            max-width: 100%
+          .gif
+            position: absolute
+            top: 0
+            bottom: 0
+            left: 0
+            right: 0
+            height: 100%
+            width: 100%
+            background-color: #00000044
+            color: white
+            padding: .5em
+      .meta
+        margin-left: 1em + $avatarSize
+        font-size: .8em
+        a
+          margin: 0 .5em
+
+    .date, .dismiss
+      float: right
+
+.openweathermap
+  & > .header, .settings
+    @include tile
+  & > .header
+    font-size: large
+    text-align: center
+    font-weight: bold
+  .ic
+    overflow: hidden
+    height: 30px
+    display: inline-block
+    img
+      margin-top: -10px
+
+  display: flex
+  flex-direction: column
+  max-width: 30%
+  .list
+    display: flex
+    flex-wrap: wrap
+  .weather, .forecast
+    flex: 1
+    @include tile
+  .forecast
+    flex: 1
+    display: flex
+    flex-wrap: wrap
+    max-height: 100%
+    overflow-y: scroll
+    overflow-x: hidden
+    .line
+      flex: 1
+      min-width: 15em
+      @include tile
+      .data
+        float: right
+      .main p
+        display: inline
+  .weather
+    min-width: 17em
+    border: 1px solid $tileColor
+    &.selected
+      border-color: $halfColor
+    .header
+      font-size: 1.2em
+    .data
+      margin-top: .5em
+    .main
+      float: right
+      p
+        margin: $borderRadius
+        display: inline
+        vertical-align: top
+
+.nextcloud-news
+  & > .header, .settings
+    @include tile
+  & > .header
+    font-size: large
+    text-align: center
+    font-weight: bold
+  .news
+    @include tile
+    .date
+      float: right
+    .read
+      margin-right: .5em
+    .content
+      padding: $borderRadius

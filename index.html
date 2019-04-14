@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Mixit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css">
+
+    <script src="lib/axios.js"></script>
+    <script src="lib/vue.full.js"></script>
+
+    <script src="compiler/dist/mastodon/main.js"></script>
+    <script src="compiler/dist/openweathermap/main.js"></script>
+    <script src="compiler/dist/nextcloud-news/main.js"></script>
+</head>
+<body>
+    <noscript>Mixit needs javascript enabled to work correctly. Sorry</noscript>
+    <div id="app">
+        <div id="errors" v-show="errors">
+            <p class="error" v-for="(error, key) in errors" @click="removeError(key)">{{ error }}</p>
+        </div>
+        <div id="manager">
+            <button @click="showManager = !showManager">+</button>
+            <input v-show="showManager" v-model="newService" @keyup.enter="addService">
+        </div>
+        <div id="services">
+            <component v-for="(service, key) in services" :is="service.type" :key="key" v-bind="service.options" @error="addError" @save="setService(key, $event)"></component>
+        </div>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
