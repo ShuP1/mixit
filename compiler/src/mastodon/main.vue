@@ -3,7 +3,7 @@
   .header(@click="showSettings = !showSettings")
     | Mastodon: 
     span(v-html="parseEmojis(account.display_name, account.emojis)")
-    | @{{ server }}
+    | {{ server ? '@' + server : '' }}
   .settings(v-show="showSettings")
     p
       label(for="reconnect") Reconnect:
@@ -17,6 +17,9 @@
     p
       label(for="buffer") Buffer:
       input#buffer(type="number" :value="buffer" @keyup.enter="setOption('buffer', parseInt($event.target.value))")
+    p
+      label(for="showMedia") Show media:
+      input#showMedia(type="checkbox" :checked="showMedia" @change="setOption('showMedia', $event.target.checked)")
   client(v-if="server && token" v-bind="$props")
   .auth(v-else)
     form(@submit.prevent="setServer")
@@ -31,13 +34,13 @@
 </template>
 
 <script>
-import { emitErrorMixin, saveOptionsMixin } from '../core/tools'
+import { emitErrorMixin, handleOptionsMixin } from '../core/tools'
 import { parseEmojisMixin } from './tools'
 import clientVue from './client.vue'
 
 export default { //TODO: Use oauth
   name: 'mastodon',
-  mixins: [ emitErrorMixin, saveOptionsMixin, parseEmojisMixin ],
+  mixins: [ emitErrorMixin, handleOptionsMixin, parseEmojisMixin ],
   components: {
     client: clientVue
   },
@@ -63,6 +66,10 @@ export default { //TODO: Use oauth
     reply: {
       default: false,
       type: Boolean
+    },
+    showMedia: {
+      default: true,
+      type: Boolean
     }
   },
   data() {
@@ -81,11 +88,6 @@ export default { //TODO: Use oauth
       }).then(() => this.saveOptions({...this.$props,
           server: this.newServer, token: this.newToken}))
         .catch(this.emitError)
-    },
-    setOption(name, value) {
-      const options = {...this.$props}
-      options[name] = value
-      this.saveOptions(options)
     }
   },
   created() {

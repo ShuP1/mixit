@@ -1,7 +1,7 @@
 <template lang="pug">
 div
   .status
-    account(v-if="withAccount" :account="status.account")
+    account(v-if="withAccount" :account="status.account" :showMedia="showMedia")
 
     span.text-icon.letter(v-if="status.reblog") ⟳
 
@@ -15,9 +15,11 @@ div
         div(v-if="!status.spoiler_text || !status.sensitive")
           .text(v-html="parseEmojis(status.content, status.emojis)")
           a.media(v-for="media in status.media_attachments" :href="media.url" target="_blank")
-            img(v-if="media.type == 'image' || media.type == 'gifv'" :src="media.preview_url" :alt="media.description" :title="media.description")
-            .gif(v-if="media.type == 'gifv'") GIF
-      status.reblog(v-else :status="status.reblog" :now="now")
+            template(v-if="showMedia")
+              img(v-if="media.type == 'image' || media.type == 'gifv'" :src="media.preview_url" :alt="media.description" :title="media.description")
+              .gif(v-if="media.type == 'gifv'") GIF
+            template(v-else) Hidden media
+      status.reblog(v-else :status="status.reblog" :now="now" :showMedia="showMedia")
 
     .meta(v-if="!status.reblog")
       a.replies(@click.stop.prevent="makeReply(status)")
@@ -47,6 +49,10 @@ export default {
   },
   props: {
     status: Object,
+    showMedia: {
+      type: Boolean,
+      default: true
+    },
     withAccount: {
       type: Boolean,
       default: true

@@ -2,21 +2,22 @@
 .client
   .statues
     .header(v-if="notifications.length > 0") Accueil
-    .list(v-if="statues.length > 0")
+    .list(v-if="statues.length > 0" @scroll="onScroll")
       template(v-for="status in statues")
-        status(v-if="showStatus(status)" :key="status.id" :status="status" :now="now" @mark="onStatusMark")
+        status(v-if="showStatus(status)" :key="status.id" :status="status" :now="now" :showMedia="showMedia" @mark="onStatusMark")
+      .status(v-show="loadingOlder") Loading...
     template(v-else) Loading...
   .notifications(v-if="notifications.length > 0")
     .header
       | Notifications
       span.date(@click.stop.prevent="onNotificationsClear") ❌
     .list
-      notification(v-for="notification in notifications" :key="notification.id" :notification="notification" :now="now" @dismiss="onNotificationDismiss")
+      notification(v-for="notification in notifications" :key="notification.id" :notification="notification" :now="now" :showMedia="showMedia" @dismiss="onNotificationDismiss")
 </template>
 
 <script>
 import { timerMinin } from '../core/fromNow.vue'
-import { emitErrorMixin, saveOptionsMixin } from '../core/tools'
+import { emitErrorMixin } from '../core/tools'
 import statusVue from './status.vue'
 import notificationVue from './notification.vue'
 
@@ -33,7 +34,8 @@ export default {
     reconnect: Boolean,
     buffer: Number,
     reblog: Boolean,
-    reply: Boolean
+    reply: Boolean,
+    showMedia: Boolean
   },
   data() {
     return {
@@ -46,17 +48,25 @@ export default {
       }),
       statues: [],
       notifications: [],
-      now: Date.now()
+      now: Date.now(),
+      loadingOlder: false
     };
   },
   methods: {
-    addStatus(status) {
-      this.statues.unshift(status)
-      this.statues.splice(this.buffer)
-    },
-    addNotification(notif) {
-      this.notifications.push(notif)
-      this.notifications.splice(this.buffer)
+    onScroll(event) {
+      if(!this.loadingOlder && event.target.scrollHeight - event.target.clientHeight - event.target.scrollTop - 100 < 0) {
+        this.loadingOlder = true
+        this.rest
+          .get("/timelines/home", { params: { limit: this.buffer,
+            max_id: this.statues[this.statues.length - 1].id } })
+          .then(res => {
+            this.statues.push.apply(this.statues, res.data)
+            this.loadingOlder = false
+          })
+          .catch(this.emitError)
+      } else if(event.target.scrollTop < 20) {
+        this.statues.splice(this.buffer)
+      }
     },
     removeStatus(id) {
       for (var i = this.statues.length - 1; i >= 0; i--) {
@@ -101,11 +111,11 @@ export default {
         const payload = JSON.parse(event.payload)
         switch (event.event) {
           case "update":
-            this.addStatus(payload)
+            this.statues.unshift(payload)
             break
 
           case "notification":
-            this.addNotification(payload)
+            this.notifications.unshift(payload)
             break
 
           case "delete":

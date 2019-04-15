@@ -9,6 +9,9 @@
       label(for="update") Update interval:
       input#update(type="number" :value="update" @keyup.enter="setOption('update', parseInt($event.target.value))")
     p
+      label(for="forecastLimit") Forecast limit:
+      input#forecastLimit(type="number" :value="forecastLimit" @keyup.enter="setOption('forecastLimit', parseInt($event.target.value))")
+    p
       button(@click="showAdd = true") Add city
   template(v-if="weathers.length > 0 || cities.length == 0")
     .list
@@ -24,27 +27,21 @@
           | {{ city.main.temp }}°C ─ {{ city.main.humidity }}%
       input.weather(v-show="showAdd" placeholder="city id" @keyup.enter="addCity(parseInt($event.target.value))")
     .forecast
-      template(v-if="forecast")
-        .list
-          .line(v-for="line in forecast")
-            | {{ formatDate(line.dt) }}
-            .data
-              | {{ line.main.temp }}°C ─ {{ line.main.humidity }}%
-            .main(v-for="main in line.weather")
-              .ic
-                img(:src="`https://openweathermap.org/img/w/${main.icon}.png`" :alt="main.main")
-              p {{ main.description }}
+      chart(v-if="forecast" :chartData="forecastChart")
       template(v-else) Loading...
   template(v-else) Loading...
 </template>
 
 <script>
-import { emitErrorMixin, saveOptionsMixin } from '../core/tools'
+import { emitErrorMixin, handleOptionsMixin } from '../core/tools'
+import chartVue from './chart.vue'
 
 export default {
   name: 'openweathermap',
-  components: {},
-  mixins: [ emitErrorMixin, saveOptionsMixin ],
+  components: {
+    chart: chartVue
+  },
+  mixins: [ emitErrorMixin, handleOptionsMixin ],
   props: {
     token: String,
     cities: {
@@ -64,6 +61,10 @@ export default {
     lang: {
       default: 'fr',
       type: String
+    },
+    forecastLimit: {
+      default: 9,
+      type: Number
     }
   },
   data() {
@@ -81,6 +82,31 @@ export default {
       showSettings: false,
       showAdd: this.cities.length == 0
     };
+  },
+  computed: {
+    forecastChart() { return {
+      datasets: [{
+        type: 'line',
+        label: 'Temperature',
+        yAxisID: 'y-axis-temp',
+        borderColor: 'white',
+        borderWidth: 1,
+        fill: false,
+        data: this.forecast.map(function (line) { return {
+          x: line.dt * 1000, y: line.main.temp
+        } })
+      },{
+        type: 'bar',
+        label: 'Percipitation',
+        yAxisID: 'y-axis-rain',
+        borderColor: '#DDDDDD',
+        backgroundColor: '#DDDDDD33',
+        borderWidth: 1,
+        data: this.forecast.filter(f => 'rain' in f && '3h' in f.rain).map(function (line) { return {
+          x: line.dt * 1000, y: line.rain['3h']
+        } })
+      }]
+    } }
   },
   methods: {
     makeSelect(id) {
@@ -103,7 +129,8 @@ export default {
     loadForecast() {
       if(this.weathers[this.selected]) {
         this.rest.get('forecast', { params: {
-          id: this.weathers[this.selected].id
+          id: this.weathers[this.selected].id,
+          cnt: this.forecastLimit
         }})
           .then(res => this.forecast = res.data.list)
           .catch(this.emitError)
@@ -116,11 +143,6 @@ export default {
     addCity(id) {
       const options = {...this.$props}
       options.cities.push({id: id})
-      this.saveOptions(options)
-    },
-    setOption(name, value) {
-      const options = {...this.$props}
-      options[name] = value
       this.saveOptions(options)
     }
   },

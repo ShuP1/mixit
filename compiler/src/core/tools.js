@@ -6,10 +6,15 @@ export const emitErrorMixin = {
     }
 }
 
-export const saveOptionsMixin = {
+export const handleOptionsMixin = {
     methods: {
         saveOptions(options) {
             this.$emit("save", options)
+        },
+        setOption(name, value) {
+            const options = {...this.$props}
+            options[name] = value
+            this.saveOptions(options)
         }
     }
 }

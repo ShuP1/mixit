@@ -1,6 +1,6 @@
 <template lang="pug">
 .notification
-  account(:account="notification.account")
+  account(:account="notification.account" :showMedia="showMedia")
 
   span.colored.text-icon.letter(v-if="notification.type == 'mention'") ✉
   span.colored.text-icon.letter(v-if="notification.type == 'reblog'") ⟳
@@ -11,7 +11,7 @@
   .content
     template(v-if="notification.type == 'follow'") Vous suit
     status.reblog(v-else-if="notification.status" :status="notification.status" :now="now"
-      :withAccount="notification.type != 'mention'" @mark.stop.prevent="")
+      :showMedia="showMedia" :withAccount="notification.type != 'mention'" @mark.stop.prevent="")
 
   a.date(@click.stop.prevent="makeDismiss" style="margin-top: -1em") ❌
 </template>
@@ -22,7 +22,13 @@ import accountVue from './account.vue'
 import statusVue from './status.vue'
 
 export default {
-  props: ["notification"],
+  props: {
+    notification: Object,
+    showMedia: {
+      type: Boolean,
+      default: true
+    }
+  },
   mixins: [ timedMixin ],
   components: {
     fromNow: fromNowVue,

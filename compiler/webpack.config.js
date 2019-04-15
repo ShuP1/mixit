@@ -25,6 +25,10 @@ module.exports = (env) => {
 		entry : {
 			[filename] : './entry.js'
 		},
+		performance: {
+			maxEntrypointSize: 512000,
+			maxAssetSize: 512000
+		},
 		output : {
 			filename : '[name].js',
 			path : path.resolve(__dirname, 'dist', filepath)

@@ -31,12 +31,12 @@
 </template>
 
 <script>
-import { emitErrorMixin, saveOptionsMixin } from '../core/tools'
+import { emitErrorMixin, handleOptionsMixin } from '../core/tools'
 import fromNowVue, { timerMinin } from '../core/fromNow.vue';
 
 export default {
   name: 'nextcloud-news',
-  mixins: [ emitErrorMixin, timerMinin, saveOptionsMixin ],
+  mixins: [ emitErrorMixin, timerMinin, handleOptionsMixin ],
   components: {
     fromNow: fromNowVue
   },
@@ -103,11 +103,6 @@ export default {
       }).then(() => this.saveOptions({...this.$props,
           server: this.newServer, token: this.newToken, username: this.newUsername }))
         .catch(this.emitError)
-    },
-    setOption(name, value) {
-      const options = {...this.$props}
-      options[name] = value
-      this.saveOptions(options)
     }
   },
   created() {

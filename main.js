@@ -40,11 +40,11 @@ var app = new Vue({
             this.saveServices()
         },
         setService(id, options) {
-            this.services.push({
+            this.$set(this.services, id, {
                 type: this.services[id].type,
                 options: options
             })
-            this.removeService(id)
+            this.saveServices()
         },
         removeService(id) {
             this.services.splice(id, 1)
@@ -52,6 +52,7 @@ var app = new Vue({
         },
         saveServices() {
             localStorage.setItem(servicesStorage, JSON.stringify(this.services))
+            this.$forceUpdate()
         }
     }
 })

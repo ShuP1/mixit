@@ -1,6 +1,6 @@
 <template lang="pug">
 a.account(target="_blank" :href="account.url")
-  .avatar(:style="avatarStyle(account.avatar_static)")
+  .avatar(v-if="showMedia" :style="avatarStyle(account.avatar_static)")
   .name(v-html="parseEmojis(account.display_name, account.emojis)")
   .acct @{{ account.acct }}
 </template>
@@ -9,7 +9,13 @@ a.account(target="_blank" :href="account.url")
 import { parseEmojisMixin } from './tools'
 
 export default {
-  props: ["account"],
+  props: {
+    account: Object,
+    showMedia: {
+      type: Boolean,
+      default: true
+    }
+  },
   mixins: [ parseEmojisMixin ],
   methods: {
     avatarStyle(avatar) {
