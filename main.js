@@ -10,11 +10,11 @@ var app = new Vue({
         errors: []
     },
     mounted() {
-        if (sessionStorage.getItem(servicesStorage)) {
+        if (localStorage.getItem(servicesStorage)) {
             try {
-                this.services = JSON.parse(sessionStorage.getItem(servicesStorage))
+                this.services = JSON.parse(localStorage.getItem(servicesStorage))
             } catch (e) {
-                sessionStorage.removeItem(servicesStorage)
+                localStorage.removeItem(servicesStorage)
             }
         }
     },
@@ -40,18 +40,18 @@ var app = new Vue({
             this.saveServices()
         },
         setService(id, options) {
-            this.$set(this.services, id, {
+            this.services.push({
                 type: this.services[id].type,
                 options: options
             })
-            this.saveServices()
+            this.removeService(id)
         },
         removeService(id) {
             this.services.splice(id, 1)
             this.saveServices()
         },
         saveServices() {
-            sessionStorage.setItem(servicesStorage, JSON.stringify(this.services))
+            localStorage.setItem(servicesStorage, JSON.stringify(this.services))
         }
     }
 })
