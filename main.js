@@ -33,7 +33,7 @@ var app = new Vue({
 
             this.services.push({
                 type: this.newService,
-                options: {}
+                options: {}, position: {}
             })
             this.newService = ''
             this.showManager = false
@@ -41,7 +41,7 @@ var app = new Vue({
         },
         setService(id, options) {
             this.$set(this.services, id, {
-                type: this.services[id].type,
+                ...this.services[id],
                 options: options
             })
             this.saveServices()
@@ -53,6 +53,12 @@ var app = new Vue({
         saveServices() {
             localStorage.setItem(servicesStorage, JSON.stringify(this.services))
             this.$forceUpdate()
+        },
+        gridPos(id, position = {}) {
+            return {
+                "grid-row": `${position.x || 1} / span ${position.h || 2}`,
+                "grid-column": `${position.y || id*2+1} / span ${position.w || 2}`
+            }
         }
     }
 })

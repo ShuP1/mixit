@@ -18,6 +18,7 @@ $foreColor: #eee
   margin: 0
   padding: 0
   font-family: Verdana, Geneva, sans-serif
+  scrollbar-width: thin
 
 body
   background-color: $backColor
@@ -53,10 +54,13 @@ a
 
 #services
   height: 100vh
-  overflow: hidden
-  display: flex
+  display: grid
+  grid-gap: .2em
+  grid-template-columns: repeat(8, minmax(0, 1fr))
+  grid-template-rows: repeat(4, minmax(0, 1fr))
+  justify-items: stretch
   & > div
-    flex: 1
+    overflow: auto
     .service-header
       .title, .settings
         @include tile
@@ -85,14 +89,12 @@ a
         transform: rotate(360deg)
 
 .mastodon
+  display: flex
+  flex-direction: column
   .client
     display: flex
-    height: 100vh
-    overflow: hidden
+    overflow-y: auto
     .list
-      height: 100%
-      overflow-y: auto
-      min-height: min-content
       & > div
         @include tile
     .statues
@@ -151,7 +153,6 @@ a
 .openweathermap
   display: flex
   flex-direction: column
-  max-width: 30%
   .list
     display: flex
     flex-wrap: wrap
@@ -160,9 +161,10 @@ a
     @include tile
   .forecast
     flex: 1
-    max-height: 100%
-    overflow-y: auto
-    overflow-x: hidden
+    overflow: hidden
+    .chart
+      position: relative
+      height: 100%
   .weather
     min-width: 17em
     border: 1px solid $tileColor
@@ -188,7 +190,7 @@ a
     .remove
       grid-area: remove
       justify-self: right
-      align-self: bottom
+      align-self: end
       font-size: .8em
   .ic
     overflow: hidden
@@ -198,6 +200,10 @@ a
       margin-top: -10px
 
 .nextcloud-news
+  display: flex
+  flex-direction: column
+  .unreaded
+    overflow-y: auto
   .news
     @include tile
     .date

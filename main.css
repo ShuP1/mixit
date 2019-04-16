@@ -2,6 +2,7 @@
   margin: 0;
   padding: 0;
   font-family: Verdana, Geneva, sans-serif;
+  scrollbar-width: thin;
 }
 
 body {
@@ -51,16 +52,18 @@ a {
 
 #services {
   height: 100vh;
-  overflow: hidden;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+  display: -ms-grid;
+  display: grid;
+  grid-gap: .2em;
+  -ms-grid-columns: (minmax(0, 1fr))[8];
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+  -ms-grid-rows: (minmax(0, 1fr))[4];
+      grid-template-rows: repeat(4, minmax(0, 1fr));
+  justify-items: stretch;
 }
 
 #services > div {
-  -webkit-box-flex: 1;
-      -ms-flex: 1;
-          flex: 1;
+  overflow: auto;
 }
 
 #services > div .service-header .title, #services > div .service-header .settings {
@@ -117,20 +120,21 @@ a {
   }
 }
 
+.mastodon {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+}
+
 .mastodon .client {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.mastodon .client .list {
-  height: 100%;
   overflow-y: auto;
-  min-height: -webkit-min-content;
-  min-height: -moz-min-content;
-  min-height: min-content;
 }
 
 .mastodon .client .list > div {
@@ -228,7 +232,6 @@ a {
   -webkit-box-direction: normal;
       -ms-flex-direction: column;
           flex-direction: column;
-  max-width: 30%;
 }
 
 .openweathermap .list {
@@ -253,9 +256,12 @@ a {
   -webkit-box-flex: 1;
       -ms-flex: 1;
           flex: 1;
-  max-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
+}
+
+.openweathermap .forecast .chart {
+  position: relative;
+  height: 100%;
 }
 
 .openweathermap .weather {
@@ -308,9 +314,9 @@ a {
   grid-area: remove;
   -ms-grid-column-align: right;
       justify-self: right;
-  -ms-flex-item-align: bottom;
-      -ms-grid-row-align: bottom;
-      align-self: bottom;
+  -ms-flex-item-align: end;
+      -ms-grid-row-align: end;
+      align-self: end;
   font-size: .8em;
 }
 
@@ -322,6 +328,20 @@ a {
 
 .openweathermap .ic img {
   margin-top: -10px;
+}
+
+.nextcloud-news {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+}
+
+.nextcloud-news .unreaded {
+  overflow-y: auto;
 }
 
 .nextcloud-news .news {

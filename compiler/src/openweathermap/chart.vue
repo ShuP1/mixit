@@ -8,7 +8,7 @@ export default {
   mixins: [ reactiveProp ],
   mounted () {
     this.renderChart(this.chartData, {
-      responsive: true,
+      responsive: true, maintainAspectRatio: false,
       legend: {
         labels: {
          fontColor: "white"

@@ -23,7 +23,7 @@
           | {{ city.main.temp }}°C ─ {{ city.main.humidity }}%
       input.weather(v-show="showAdd" placeholder="city id" @keyup.enter="addCity(parseInt($event.target.value))")
     .forecast
-      chart(v-if="forecast" :chartData="forecastChart")
+      chart.chart(v-if="forecast" :chartData="forecastChart")
       .service-loader(v-else)
   .service-loader(v-else)
 </template>

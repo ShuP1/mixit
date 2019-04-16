@@ -25,7 +25,11 @@
             <input v-show="showManager" v-model="newService" @keyup.enter="addService">
         </div>
         <div id="services">
-            <component v-for="(service, key) in services" :is="service.type" :key="key" v-bind="service.options" @error="addError" @save="setService(key, $event)"></component>
+            <component
+                v-for="(service, key) in services" :is="service.type" :key="key"
+                v-bind="service.options" @error="addError" @save="setService(key, $event)"
+                :style="gridPos(key, service.position)"
+            />
         </div>
     </div>
     <script src="main.js"></script>

@@ -1,10 +1,11 @@
 <template lang="pug">
-.nextcloud-news(v-show="unreaded.length > 0 || !server || !token || !username")
+.nextcloud-news(v-show="showEmpty || unreaded.length > 0 || !server || !token || !username")
   service-header
     template(#title) Nextcloud News
     template(#settings)
       setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="setOptionCouple")
       setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="setOptionCouple")
+      setting-boolean(:id="'showEmpty'" :title="'Show empty'" :value="showEmpty" @change="setOptionCouple")
   .unreaded
     .news(v-for="news in unreaded")
       a(:href="news.url" target="_blank")
@@ -53,6 +54,10 @@ export default {
     update: {
       default: 5 * 60, //5min
       type: Number
+    },
+    showEmpty: {
+      default: false,
+      type: Boolean
     }
   },
   data() {

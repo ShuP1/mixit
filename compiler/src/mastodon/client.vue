@@ -1,8 +1,8 @@
 <template lang="pug">
-.client
+.client(@scroll="onScroll")
   .statues
     .header(v-if="notifications.length > 0") Accueil
-    .list(v-if="statues.length > 0" @scroll="onScroll")
+    .list(v-if="statues.length > 0")
       template(v-for="status in statues")
         status(v-if="showStatus(status)" :key="status.id" :status="status" :now="now" :showMedia="showMedia" @mark="onStatusMark")
       .status(v-show="loadingOlder")
