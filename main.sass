@@ -5,6 +5,7 @@ $backColor: #333
 $tileColor: #222
 $darkColor: #111
 $halfColor: #999
+$noneColor: #aaa
 $foreColor: #eee
 
 @mixin tile
@@ -24,7 +25,7 @@ body
 
 a
   text-decoration: none
-  color: #aaa
+  color: $noneColor
 
 .icon
   width: 1em
@@ -56,12 +57,32 @@ a
   display: flex
   & > div
     flex: 1
-    & > .header, & > .settings
-      @include tile
-    & > .header
-      font-size: large
-      text-align: center
-      font-weight: bold
+    .service-header
+      .title, .settings
+        @include tile
+      .title
+        font-size: large
+        text-align: center
+        font-weight: bold
+  .service-loader
+    display: inline-block
+    width: 64px
+    height: 64px
+    &:after
+      content: " "
+      display: block
+      width: 46px
+      height: 46px
+      margin: 1px
+      border-radius: 50%
+      border: 5px solid $noneColor
+      border-color: $noneColor transparent $noneColor transparent
+      animation: service-loader 1.2s linear infinite
+    @keyframes service-loader
+      0%
+        transform: rotate(0deg)
+      100%
+        transform: rotate(360deg)
 
 .mastodon
   .client
@@ -82,7 +103,7 @@ a
     .account
       .name
         margin: 0 $borderRadius
-        color: #eee
+        color: $foreColor
       .avatar
         float: left
         border-radius: $borderRadius
@@ -128,13 +149,6 @@ a
       float: right
 
 .openweathermap
-  .ic
-    overflow: hidden
-    height: 30px
-    display: inline-block
-    img
-      margin-top: -10px
-
   display: flex
   flex-direction: column
   max-width: 30%
@@ -152,18 +166,36 @@ a
   .weather
     min-width: 17em
     border: 1px solid $tileColor
+    display: grid
+    grid-template-columns: auto auto
+    grid-template-rows: 1.2em auto
+    grid-template-areas: "header main" "data remove"
     &.selected
       border-color: $halfColor
     .header
+      grid-area: header
       font-size: 1.2em
     .data
+      grid-area: data
       margin-top: .5em
     .main
-      float: right
+      grid-area: main
+      justify-self: right
       p
         margin: $borderRadius
         display: inline
         vertical-align: top
+    .remove
+      grid-area: remove
+      justify-self: right
+      align-self: bottom
+      font-size: .8em
+  .ic
+    overflow: hidden
+    height: 30px
+    display: inline-block
+    img
+      margin-top: -10px
 
 .nextcloud-news
   .news

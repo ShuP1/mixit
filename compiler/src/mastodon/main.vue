@@ -1,25 +1,16 @@
 <template lang="pug">
 .mastodon
-  .header(@click="showSettings = !showSettings")
-    | Mastodon: 
-    span(v-html="parseEmojis(account.display_name, account.emojis)")
-    | {{ server ? '@' + server : '' }}
-  .settings(v-show="showSettings")
-    p
-      label(for="reconnect") Reconnect:
-      input#reconnect(type="checkbox" :checked="reconnect" @change="setOption('reconnect', $event.target.checked)")
-    p
-      label(for="reblog") Show reblogs:
-      input#reblog(type="checkbox" :checked="reblog" @change="setOption('reblog', $event.target.checked)")
-    p
-      label(for="reply") Show replies:
-      input#reply(type="checkbox" :checked="reply" @change="setOption('reply', $event.target.checked)")
-    p
-      label(for="buffer") Buffer:
-      input#buffer(type="number" :value="buffer" @keyup.enter="setOption('buffer', parseInt($event.target.value))")
-    p
-      label(for="showMedia") Show media:
-      input#showMedia(type="checkbox" :checked="showMedia" @change="setOption('showMedia', $event.target.checked)")
+  service-header
+    template(#title)
+      | Mastodon: 
+      span(v-html="parseEmojis(account.display_name, account.emojis)")
+      | {{ server ? '@' + server : '' }}
+    template(#settings)
+      setting-boolean(:id="'reconnect'" :title="'Reconnect'" :value="reconnect" @change="setOptionCouple")
+      setting-boolean(:id="'reblog'" :title="'Show reblogs'" :value="reblog" @change="setOptionCouple")
+      setting-boolean(:id="'reply'" :title="'Show replies'" :value="reply" @change="setOptionCouple")
+      setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="setOptionCouple")
+      setting-boolean(:id="'showMedia'" :title="'Show medias'" :value="showMedia" @change="setOptionCouple")
   client(v-if="server && token" v-bind="$props")
   .auth(v-else)
     form(@submit.prevent="setServer")
@@ -34,13 +25,15 @@
 </template>
 
 <script>
-import { emitErrorMixin, handleOptionsMixin } from '../core/tools'
+import baseServiceVue from '../core/baseService.vue'
+
 import { parseEmojisMixin } from './tools'
 import clientVue from './client.vue'
 
 export default { //TODO: Use oauth
   name: 'mastodon',
-  mixins: [ emitErrorMixin, handleOptionsMixin, parseEmojisMixin ],
+  extends: baseServiceVue,
+  mixins: [ parseEmojisMixin ],
   components: {
     client: clientVue
   },
@@ -76,7 +69,6 @@ export default { //TODO: Use oauth
     return {
       newServer: this.server,
       newToken: this.token,
-      showSettings: false,
       account: { display_name: 'Loading...', emojis: [] }
     };
   },

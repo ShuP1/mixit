@@ -1,4 +1,4 @@
-//TODO: discord, weather graph
+//TODO: discord
 
 const servicesStorage = 'services'
 var app = new Vue({

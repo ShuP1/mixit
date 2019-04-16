@@ -5,8 +5,9 @@
     .list(v-if="statues.length > 0" @scroll="onScroll")
       template(v-for="status in statues")
         status(v-if="showStatus(status)" :key="status.id" :status="status" :now="now" :showMedia="showMedia" @mark="onStatusMark")
-      .status(v-show="loadingOlder") Loading...
-    template(v-else) Loading...
+      .status(v-show="loadingOlder")
+        .service-loader
+    .service-loader(v-else)
   .notifications(v-if="notifications.length > 0")
     .header
       | Notifications

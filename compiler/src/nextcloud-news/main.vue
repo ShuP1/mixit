@@ -1,13 +1,10 @@
 <template lang="pug">
 .nextcloud-news(v-show="unreaded.length > 0 || !server || !token || !username")
-  .header(@click="showSettings = !showSettings") Nextcloud News
-  .settings(v-show="showSettings")
-      p
-        label(for="update") Update interval:
-        input#update(type="number" :value="update" @keyup.enter="setOption('update', parseInt($event.target.value))")
-      p
-        label(for="buffer") Buffer:
-        input#buffer(type="number" :value="buffer" @keyup.enter="setOption('buffer', parseInt($event.target.value))")
+  service-header
+    template(#title) Nextcloud News
+    template(#settings)
+      setting-boolean(:id="'update'" :title="'Update interval'" :value="update" @change="setOptionCouple")
+      setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="setOptionCouple")
   .unreaded
     .news(v-for="news in unreaded")
       a(:href="news.url" target="_blank")
@@ -31,12 +28,13 @@
 </template>
 
 <script>
-import { emitErrorMixin, handleOptionsMixin } from '../core/tools'
-import fromNowVue, { timerMinin } from '../core/fromNow.vue';
+import baseServiceVue from '../core/baseService.vue'
+import fromNowVue, { timerMinin } from '../core/fromNow.vue'
 
 export default {
   name: 'nextcloud-news',
-  mixins: [ emitErrorMixin, timerMinin, handleOptionsMixin ],
+  extends: baseServiceVue,
+  mixins: [ timerMinin ],
   components: {
     fromNow: fromNowVue
   },
@@ -68,7 +66,6 @@ export default {
       }),
       unreaded: [],
       now: Date.now(),
-      showSettings: false,
       newServer: this.server,
       newUsername: this.username,
       newToken: this.token,

@@ -15,6 +15,9 @@ export const handleOptionsMixin = {
             const options = {...this.$props}
             options[name] = value
             this.saveOptions(options)
+        },
+        setOptionCouple(couple) {
+            this.setOption(couple.name, couple.value)
         }
     }
 }

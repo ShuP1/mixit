@@ -1,18 +1,13 @@
 <template lang="pug">
 .openweathermap
-  .header(@click="showSettings = !showSettings") OpenWeatherMap
-  .settings(v-show="showSettings")
-    p
-      label(for="token") Token:
-      input#token(:value="token" @keyup.enter="setOption('token', $event.target.value)")
-    p
-      label(for="update") Update interval:
-      input#update(type="number" :value="update" @keyup.enter="setOption('update', parseInt($event.target.value))")
-    p
-      label(for="forecastLimit") Forecast limit:
-      input#forecastLimit(type="number" :value="forecastLimit" @keyup.enter="setOption('forecastLimit', parseInt($event.target.value))")
-    p
-      button(@click="showAdd = true") Add city
+  service-header
+    template(#title) OpenWeatherMap
+    template(#settings)
+      setting-string(:id="'token'" :title="'Token'" :value="token" @change="setOptionCouple")
+      setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="setOptionCouple")
+      setting-int(:id="'forecastLimit'" :title="'Forecast limit'" :value="forecastLimit" @change="setOptionCouple")
+      p.setting
+        button(@click="showAdd = true") Add city
   template(v-if="weathers.length > 0 || cities.length == 0")
     .list
       .weather(v-for="(city, id) in weathers" :class="{ selected: selected == id }" @click.stop.prevent="makeSelect(id)")
@@ -20,6 +15,7 @@
           p {{ main.description }}
           .ic
             img(:src="`https://openweathermap.org/img/w/${main.icon}.png`" :alt="main.main")
+        span.remove(@click.stop.prevent="removeCity(id)") ❌
         .header
           | {{ city.name }}&nbsp;
           img.icon(:src="`https://openweathermap.org/images/flags/${city.sys.country.toLowerCase()}.png`" :alt="city.sys.country" :title="city.sys.country")
@@ -28,20 +24,21 @@
       input.weather(v-show="showAdd" placeholder="city id" @keyup.enter="addCity(parseInt($event.target.value))")
     .forecast
       chart(v-if="forecast" :chartData="forecastChart")
-      template(v-else) Loading...
-  template(v-else) Loading...
+      .service-loader(v-else)
+  .service-loader(v-else)
 </template>
 
 <script>
-import { emitErrorMixin, handleOptionsMixin } from '../core/tools'
+import baseServiceVue from '../core/baseService.vue'
+
 import chartVue from './chart.vue'
 
 export default {
   name: 'openweathermap',
+  extends: baseServiceVue,
   components: {
     chart: chartVue
   },
-  mixins: [ emitErrorMixin, handleOptionsMixin ],
   props: {
     token: String,
     cities: {
@@ -79,7 +76,6 @@ export default {
       weathers: [],
       forecast: null,
       selected: 0,
-      showSettings: false,
       showAdd: this.cities.length == 0
     };
   },
@@ -143,6 +139,11 @@ export default {
     addCity(id) {
       const options = {...this.$props}
       options.cities.push({id: id})
+      this.saveOptions(options)
+    },
+    removeCity(i) {
+      const options = {...this.$props}
+      options.cities.splice(i, 1)
       this.saveOptions(options)
     }
   },
