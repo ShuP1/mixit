@@ -3,7 +3,7 @@
   service-header
     template(#title) Nextcloud News
     template(#settings)
-      setting-boolean(:id="'update'" :title="'Update interval'" :value="update" @change="setOptionCouple")
+      setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="setOptionCouple")
       setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="setOptionCouple")
   .unreaded
     .news(v-for="news in unreaded")
