@@ -26,9 +26,8 @@
         </div>
         <div id="services">
             <component
-                v-for="(service, key) in services" :is="service.type" :key="key"
-                @error="addError" @save="setService(key, $event)" @move="moveService(key, $event)"
-                v-bind="service.options" :style="gridPos(key, service.position)"
+                v-for="(service, key) in services" :is="service.type" :emit="makeEmiter(key)"
+                :key="key" v-bind="service.options" :style="gridPos(key, service.position)"
             />
         </div>
     </div>

@@ -28,6 +28,11 @@ a
   text-decoration: none
   color: $noneColor
 
+input, select, button
+  background-color: $backColor
+  color: $foreColor
+  border: 1px solid $halfColor
+
 .icon
   width: 1em
   height: 1em
@@ -123,7 +128,9 @@ a
     .status, .notification
       min-height: $avatarSize
       .content
-        margin: .5em .5em .5em .5em + $avatarSize
+        margin: .5em .5em .5em 1em
+        &.avatared
+          margin-left: .5em + $avatarSize
         .reblog
           font-size: .8em
         .spoiler

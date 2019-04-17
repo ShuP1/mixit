@@ -15,6 +15,12 @@ a {
   color: #aaa;
 }
 
+input, select, button {
+  background-color: #333;
+  color: #eee;
+  border: 1px solid #999;
+}
+
 .icon {
   width: 1em;
   height: 1em;
@@ -188,7 +194,11 @@ a {
 }
 
 .mastodon .client .status .content, .mastodon .client .notification .content {
-  margin: 0.5em 0.5em 0.5em 3.5em;
+  margin: .5em .5em .5em 1em;
+}
+
+.mastodon .client .status .content.avatared, .mastodon .client .notification .content.avatared {
+  margin-left: 3.5em;
 }
 
 .mastodon .client .status .content .reblog, .mastodon .client .notification .content .reblog {

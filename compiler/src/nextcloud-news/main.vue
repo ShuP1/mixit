@@ -1,11 +1,11 @@
 <template lang="pug">
 .nextcloud-news(v-show="showEmpty || unreaded.length > 0 || !server || !token || !username")
-  service-header(@move="passMove")
+  service-header(:emit="emit")
     template(#title) Nextcloud News
     template(#settings)
-      setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="setOptionCouple")
-      setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="setOptionCouple")
-      setting-boolean(:id="'showEmpty'" :title="'Show empty'" :value="showEmpty" @change="setOptionCouple")
+      setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="saveOptionCouple")
+      setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="saveOptionCouple")
+      setting-boolean(:id="'showEmpty'" :title="'Show empty'" :value="showEmpty" @change="saveOptionCouple")
   .unreaded
     .news(v-for="news in unreaded")
       a(:href="news.url" target="_blank")
@@ -102,7 +102,7 @@ export default {
       axios.get(`https://${this.newServer}/index.php/apps/news/api/v1-2/folders`, {
         headers: { Authorization: 'Basic ' + btoa(this.newUsername + ':' + this.newToken) },
         timeout: this.timeout
-      }).then(() => this.saveOptions({...this.$props,
+      }).then(() => this.saveOptions({ ...this.$props,
           server: this.newServer, token: this.newToken, username: this.newUsername }))
         .catch(this.emitError)
     }

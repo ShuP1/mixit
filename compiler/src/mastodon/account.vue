@@ -9,6 +9,7 @@ a.account(target="_blank" :href="account.url")
 import { parseEmojisMixin } from './tools'
 
 export default {
+  mixins: [ parseEmojisMixin ],
   props: {
     account: Object,
     showMedia: {
@@ -16,7 +17,6 @@ export default {
       default: true
     }
   },
-  mixins: [ parseEmojisMixin ],
   methods: {
     avatarStyle(avatar) {
       return {

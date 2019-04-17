@@ -1,11 +1,11 @@
 <template lang="pug">
 .openweathermap
-  service-header(@move="passMove")
+  service-header(:emit="emit")
     template(#title) OpenWeatherMap
     template(#settings)
-      setting-string(:id="'token'" :title="'Token'" :value="token" @change="setOptionCouple")
-      setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="setOptionCouple")
-      setting-int(:id="'forecastLimit'" :title="'Forecast limit'" :value="forecastLimit" @change="setOptionCouple")
+      setting-string(:id="'token'" :title="'Token'" :value="token" @change="saveOptionCouple")
+      setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="saveOptionCouple")
+      setting-int(:id="'forecastLimit'" :title="'Forecast limit'" :value="forecastLimit" @change="saveOptionCouple")
       p.setting
         button(@click="showAdd = true") Add city
   template(v-if="weathers.length > 0 || cities.length == 0")
@@ -137,14 +137,12 @@ export default {
        return `${date.toLocaleDateString()} ${date.getHours()}h`
     },
     addCity(id) {
-      const options = {...this.$props}
-      options.cities.push({id: id})
-      this.saveOptions(options)
+      this.cities.push({ id: id })
+      this.saveOption('cities', this.cities)
     },
-    removeCity(i) {
-      const options = {...this.$props}
-      options.cities.splice(i, 1)
-      this.saveOptions(options)
+    removeCity(key) {
+      this.cities.splice(key, 1)
+      this.saveOption('cities', this.cities)
     }
   },
   created() {

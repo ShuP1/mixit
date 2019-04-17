@@ -19,12 +19,14 @@
 
 <script>
 import { timerMinin } from '../core/fromNow.vue'
-import { emitErrorMixin } from '../core/tools'
+import serviceEmiterVue from '../core/serviceEmiter.vue'
+
 import statusVue from './status.vue'
 import notificationVue from './notification.vue'
 
 export default {
-  mixins: [ timerMinin, emitErrorMixin ],
+  extends: serviceEmiterVue,
+  mixins: [ timerMinin ],
   components: {
     status: statusVue,
     notification: notificationVue

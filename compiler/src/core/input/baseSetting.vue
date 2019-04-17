@@ -6,7 +6,7 @@ export default {
   },
   methods: {
     sendChange(value) {
-      this.$emit('change', { name: this.id, value: value })
+      this.$emit('change', { key: this.id, value: value })
     }
   }
 }

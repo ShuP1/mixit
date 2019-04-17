@@ -1,17 +1,17 @@
 <template lang="pug">
 .mastodon
-  service-header(@move="passMove")
+  service-header(:emit="emit")
     template(#title)
       | Mastodon: 
       span(v-html="parseEmojis(account.display_name, account.emojis)")
       | {{ server ? '@' + server : '' }}
     template(#settings)
-      setting-boolean(:id="'reconnect'" :title="'Reconnect'" :value="reconnect" @change="setOptionCouple")
-      setting-boolean(:id="'reblog'" :title="'Show reblogs'" :value="reblog" @change="setOptionCouple")
-      setting-boolean(:id="'reply'" :title="'Show replies'" :value="reply" @change="setOptionCouple")
-      setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="setOptionCouple")
-      setting-boolean(:id="'showMedia'" :title="'Show medias'" :value="showMedia" @change="setOptionCouple")
-  client(v-if="server && token" v-bind="$props" @error="emitError")
+      setting-boolean(:id="'reconnect'" :title="'Reconnect'" :value="reconnect" @change="saveOptionCouple")
+      setting-boolean(:id="'reblog'" :title="'Show reblogs'" :value="reblog" @change="saveOptionCouple")
+      setting-boolean(:id="'reply'" :title="'Show replies'" :value="reply" @change="saveOptionCouple")
+      setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="saveOptionCouple")
+      setting-boolean(:id="'showMedia'" :title="'Show medias'" :value="showMedia" @change="saveOptionCouple")
+  client(v-if="server && token" v-bind="$props")
   .auth(v-else)
     form(@submit.prevent="setServer")
       p
@@ -77,8 +77,8 @@ export default { //TODO: Use oauth
       axios.get(`https://${this.newServer}/api/v1/accounts/verify_credentials`, {
         headers: { Authorization: "Bearer " + this.newToken },
         timeout: this.timeout
-      }).then(() => this.saveOptions({...this.$props,
-          server: this.newServer, token: this.newToken}))
+      }).then(() => this.saveOptions({ ...this.$props,
+          server: this.newServer, token: this.newToken }))
         .catch(this.emitError)
     }
   },

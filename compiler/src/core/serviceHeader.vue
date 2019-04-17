@@ -17,9 +17,12 @@ export default {
   data() { return {
     showSettings: false
   } },
+  props: {
+    emit: Function
+  },
   methods: {
     onMove(type, direction) {
-      this.$emit('move', { type: type, direction: direction })
+      this.emit('move', { type: type, direction: direction })
     },
   }
 }

@@ -8,7 +8,7 @@ div
     a.date(target="_blank" :href="status.uri")
       from-now(:date="status.created_at" :now="now")
 
-    .content
+    .content(:class="{ avatared: showMedia }")
       template(v-if="!status.reblog")
         .spoiler(v-if="status.spoiler_text" @click.stop.prevent="status.sensitive = !status.sensitive").
           {{ status.spoiler_text || 'Spoiler' }} {{ status.sensitive ? '&rarr;' : '&darr;' }}
@@ -49,11 +49,11 @@ export default {
   },
   props: {
     status: Object,
-    showMedia: {
+    withAccount: {
       type: Boolean,
       default: true
     },
-    withAccount: {
+    showMedia: {
       type: Boolean,
       default: true
     }
