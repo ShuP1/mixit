@@ -3,40 +3,40 @@
   service-header(:emit="emit")
     template(#title) OpenWeatherMap
     template(#settings)
-      setting-string(:id="'token'" :title="'Token'" :value="token" @change="saveOptionCouple")
       setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="saveOptionCouple")
       setting-int(:id="'forecastLimit'" :title="'Forecast limit'" :value="forecastLimit" @change="saveOptionCouple")
       p.setting
         button(@click="showAdd = true") Add city
-  template(v-if="weathers.length > 0 || cities.length == 0")
-    .list
-      .weather(v-for="(city, id) in weathers" :class="{ selected: selected == id }" @click.stop.prevent="makeSelect(id)")
-        .main(v-for="main in city.weather")
-          p {{ main.description }}
-          .ic
-            img(:src="`https://openweathermap.org/img/w/${main.icon}.png`" :alt="main.main")
-        span.remove(@click.stop.prevent="removeCity(id)") ❌
-        .header
-          | {{ city.name }}&nbsp;
-          img.icon(:src="`https://openweathermap.org/images/flags/${city.sys.country.toLowerCase()}.png`" :alt="city.sys.country" :title="city.sys.country")
-        .data
-          | {{ city.main.temp }}°C ─ {{ city.main.humidity }}%
-      input.weather(v-show="showAdd" placeholder="city id" @keyup.enter="addCity(parseInt($event.target.value))")
-    .forecast
-      chart.chart(v-if="forecast" :chartData="forecastChart")
-      .service-loader(v-else)
-  .service-loader(v-else)
+  loadable-block(:loadable="weathers")
+    template(#success)
+      .list
+        weather(v-for="(city, id) in weathers.get()" :key="id" :selected="selectedId == id"
+          :city="city" @select="makeSelect(id)" @remove="removeCity(id)")
+        input.weather(v-show="showAdd" placeholder="city id" @keyup.enter="addCity(parseInt($event.target.value))")
+      loadable-block(:loadable="forecast").forecast
+        template(#success)
+          chart.chart(:chartData="forecastChart")
+    template(#error)
+      form(@submit.prevent="makeAuth")
+        p
+          label(for="token") Token:
+          input#token(v-model="newToken" required)
+        p
+          input(type="submit" value="Connect")
 </template>
 
 <script>
 import baseServiceVue from '../core/baseService.vue'
+import Loadable from '../core/loadable/Loadable'
 
 import chartVue from './chart.vue'
+import weatherVue from './weather.vue'
 
 export default {
   name: 'openweathermap',
   extends: baseServiceVue,
   components: {
+    weather: weatherVue,
     chart: chartVue
   },
   props: {
@@ -73,9 +73,10 @@ export default {
         },
         timeout: this.timeout
       }),
-      weathers: [],
-      forecast: null,
-      selected: 0,
+      newToken: this.token,
+      weathers: new Loadable(),
+      forecast: new Loadable(),
+      selectedId: 0,
       showAdd: this.cities.length == 0
     };
   },
@@ -88,7 +89,7 @@ export default {
         borderColor: 'white',
         borderWidth: 1,
         fill: false,
-        data: this.forecast.map(function (line) { return {
+        data: this.forecast.get().map(function (line) { return {
           x: line.dt * 1000, y: line.main.temp
         } })
       },{
@@ -98,37 +99,42 @@ export default {
         borderColor: '#DDDDDD',
         backgroundColor: '#DDDDDD33',
         borderWidth: 1,
-        data: this.forecast.filter(f => 'rain' in f && '3h' in f.rain).map(function (line) { return {
+        data: this.forecast.get().filter(f => 'rain' in f && '3h' in f.rain).map(function (line) { return {
           x: line.dt * 1000, y: line.rain['3h']
         } })
       }]
-    } }
+    } },
+    selected() {
+      return this.weathers.isSuccess() ? this.weathers.get()[this.selectedId] : null
+    },
+    hasWeathers() {
+      return this.weathers.isSuccess() && this.weathers.get().length > 0
+    }
   },
   methods: {
     makeSelect(id) {
-      this.selected = id
-      this.forecast = null
+      this.selectedId = id
       this.loadForecast()
     },
     updateData() {
-      for (let i = 0; i < this.weathers.length; i++) {
-        const weather = this.weathers[i];
-        this.getWeather({ id: weather.id })
-          .then(res => this.$set(this.weathers, i, res.data))
-      }
+      Lists.for(this.weathers.get(),
+        (weather, i) => this.getWeather({ id: weather.id })
+          .then(res => this.$set(this.weathers.get(), i, res.data))
+      )
       this.loadForecast()
     },
     getWeather(params) {
       return this.catchEmit(this.rest.get('weather', { params: params }))
     },
     loadForecast() {
-      if(this.weathers[this.selected]) {
-        this.catchEmit(this.rest.get('forecast', { params: {
-          id: this.weathers[this.selected].id,
-          cnt: this.forecastLimit
-        }}))
-          .then(res => this.forecast = res.data.list)
-      }
+      if(this.selected) {
+        this.forecast.load(
+          this.catchEmit(this.rest.get('forecast', { params: {
+            id: this.selected.id, cnt: this.forecastLimit
+          }})),
+          res => res.data.list
+        )
+      } else this.forecast.fail('Any selection')
     },
     formatDate(dt) {
        const date = new Date(dt * 1000)
@@ -139,19 +145,35 @@ export default {
       this.saveOption('cities', this.cities)
     },
     removeCity(key) {
-      this.cities.splice(key, 1)
+      Lists.removeAt(this.cities, key)
       this.saveOption('cities', this.cities)
+    },
+    init() {
+      if(this.token) {
+        if(this.cities.length > 0) {
+          axios.all(this.cities.map(city => this.getWeather(city)))
+            .then(axios.spread((...ress) =>
+              this.weathers.success(ress.map(r => r.data))))
+            .then(this.loadForecast)
+            .catch(this.weathers.fail)
+
+          if(this.update > 0)
+            setInterval(this.updateData, this.update * 1000)
+        } else this.weathers.success([])
+      } else this.weathers.fail('First connection')
+    },
+    makeAuth() {
+      this.catchEmit(axios.get('https://api.openweathermap.org/data/2.5/weather', {
+        params: { q: 'London', appid: this.newToken },
+        timeout: this.timeout
+      })).then(() => {
+        this.saveOption('token', this.newToken)
+        this.init()
+      })
     }
   },
   created() {
-    axios.all(
-      this.cities.map(
-        city => this.getWeather(city)
-          .then(res => this.weathers.push(res.data))))
-      .then(this.loadForecast)
-
-    if(this.update > 0)
-      setInterval(this.updateData, this.update * 1000)
+    this.init()
   }
 }
 </script>

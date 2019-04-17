@@ -75,6 +75,13 @@ input, select, button {
 
 #services > div {
   overflow: auto;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
 }
 
 #services > div .service-header .title, #services > div .service-header .settings {
@@ -93,6 +100,10 @@ input, select, button {
 #services > div .service-header .settings .position {
   float: right;
   width: 1.2em;
+}
+
+#services > div .service-content {
+  overflow: hidden;
 }
 
 #services .service-loader {
@@ -136,20 +147,11 @@ input, select, button {
   }
 }
 
-.mastodon {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: column;
-          flex-direction: column;
-}
-
 .mastodon .client {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  height: 100%;
   overflow-y: auto;
 }
 
@@ -251,10 +253,14 @@ input, select, button {
   float: right;
 }
 
-.openweathermap {
+.openweathermap .loadable-block {
+  overflow: hidden;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
       -ms-flex-direction: column;
@@ -284,6 +290,7 @@ input, select, button {
       -ms-flex: 1;
           flex: 1;
   overflow: hidden;
+  height: 100%;
 }
 
 .openweathermap .forecast .chart {
@@ -355,16 +362,6 @@ input, select, button {
 
 .openweathermap .ic img {
   margin-top: -10px;
-}
-
-.nextcloud-news {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: column;
-          flex-direction: column;
 }
 
 .nextcloud-news .unreaded {

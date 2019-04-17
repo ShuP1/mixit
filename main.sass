@@ -70,6 +70,8 @@ input, select, button
   justify-items: stretch
   & > div
     overflow: auto
+    display: flex
+    flex-direction: column
     .service-header
       .title, .settings
         @include tile
@@ -80,6 +82,8 @@ input, select, button
       .settings .position
         float: right
         width: 1.2em
+    .service-content
+      overflow: hidden
   .service-loader
     display: inline-block
     width: 64px
@@ -101,10 +105,9 @@ input, select, button
         transform: rotate(360deg)
 
 .mastodon
-  display: flex
-  flex-direction: column
   .client
     display: flex
+    height: 100%
     overflow-y: auto
     .header
       @include tile
@@ -167,8 +170,11 @@ input, select, button
       float: right
 
 .openweathermap
-  display: flex
-  flex-direction: column
+  .loadable-block
+    overflow: hidden
+    display: flex
+    flex: 1
+    flex-direction: column
   .list
     display: flex
     flex-wrap: wrap
@@ -178,6 +184,7 @@ input, select, button
   .forecast
     flex: 1
     overflow: hidden
+    height: 100%
     .chart
       position: relative
       height: 100%
@@ -216,8 +223,6 @@ input, select, button
       margin-top: -10px
 
 .nextcloud-news
-  display: flex
-  flex-direction: column
   .unreaded
     overflow-y: auto
   .news
