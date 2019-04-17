@@ -1,5 +1,5 @@
 <template lang="pug">
-.client(@scroll="onScroll")
+.client(@scroll.passive="onScroll")
   .statues
     .header(v-if="notifications.length > 0") Accueil
     .list(v-if="statues.length > 0")
@@ -13,7 +13,8 @@
       | Notifications
       span.date(@click.stop.prevent="onNotificationsClear") ❌
     .list
-      notification(v-for="notification in notifications" :key="notification.id" :notification="notification" :now="now" :showMedia="showMedia" @dismiss="onNotificationDismiss")
+      notification(v-for="notification in notifications" :key="notification.id" :notification="notification" :now="now"
+        :showMedia="showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark")
 </template>
 
 <script>

@@ -1,6 +1,6 @@
 <template lang="pug">
 .mastodon
-  service-header
+  service-header(@move="passMove")
     template(#title)
       | Mastodon: 
       span(v-html="parseEmojis(account.display_name, account.emojis)")
@@ -11,7 +11,7 @@
       setting-boolean(:id="'reply'" :title="'Show replies'" :value="reply" @change="setOptionCouple")
       setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="setOptionCouple")
       setting-boolean(:id="'showMedia'" :title="'Show medias'" :value="showMedia" @change="setOptionCouple")
-  client(v-if="server && token" v-bind="$props")
+  client(v-if="server && token" v-bind="$props" @error="emitError")
   .auth(v-else)
     form(@submit.prevent="setServer")
       p

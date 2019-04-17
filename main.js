@@ -46,6 +46,12 @@ var app = new Vue({
             })
             this.saveServices()
         },
+        moveService(id, move) {
+            const service = { ...this.services[id] }
+            service.position[move.type] = Math.max(1, (service.position[move.type] || 1) + move.direction)
+            this.$set(this.services, id, service)
+            this.saveServices()
+        },
         removeService(id) {
             this.services.splice(id, 1)
             this.saveServices()

@@ -1,6 +1,6 @@
 <template lang="pug">
 .nextcloud-news(v-show="showEmpty || unreaded.length > 0 || !server || !token || !username")
-  service-header
+  service-header(@move="passMove")
     template(#title) Nextcloud News
     template(#settings)
       setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="setOptionCouple")

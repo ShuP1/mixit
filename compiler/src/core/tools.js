@@ -1,7 +1,7 @@
 export const emitErrorMixin = {
     methods: {
         emitError(err) {
-            this.$emit("error", err.toString())
+            this.$emit('error', err.toString())
         }
     }
 }
@@ -9,7 +9,7 @@ export const emitErrorMixin = {
 export const handleOptionsMixin = {
     methods: {
         saveOptions(options) {
-            this.$emit("save", options)
+            this.$emit('save', options)
         },
         setOption(name, value) {
             const options = {...this.$props}

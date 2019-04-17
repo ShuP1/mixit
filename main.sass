@@ -68,6 +68,9 @@ a
         font-size: large
         text-align: center
         font-weight: bold
+      .settings .position
+        float: right
+        width: 1.2em
   .service-loader
     display: inline-block
     width: 64px
@@ -94,6 +97,8 @@ a
   .client
     display: flex
     overflow-y: auto
+    .header
+      @include tile
     .list
       & > div
         @include tile

@@ -1,6 +1,6 @@
 <template lang="pug">
 .openweathermap
-  service-header
+  service-header(@move="passMove")
     template(#title) OpenWeatherMap
     template(#settings)
       setting-string(:id="'token'" :title="'Token'" :value="token" @change="setOptionCouple")

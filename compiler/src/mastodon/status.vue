@@ -65,10 +65,10 @@ export default {
     makeReply(status) {
       console.error(status.id) //TODO:
     },
-    emitMark(status, action, callback) {
+    emitMark(status, action, callback, undo = false) {
       this.$emit('mark', {
         id: status.id,
-        type: (status.reblogged ? 'un' : '') + action,
+        type: (undo ? 'un' : '') + action,
         callback: callback
       })
     },
@@ -76,13 +76,13 @@ export default {
       this.emitMark(status, 'reblog', () => {
         status.reblogs_count += (status.reblogged ? -1 : 1)
         status.reblogged = !status.reblogged
-      })
+      }, status.reblogged)
     },
     makeFav(status) {
       this.emitMark(status, 'favourite', () => {
         status.favourites_count += (status.favourited ? -1 : 1)
         status.favourited = !status.favourited
-      })
+      }, status.favourited)
     }
   }
 }

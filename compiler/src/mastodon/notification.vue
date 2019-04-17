@@ -11,7 +11,7 @@
   .content
     template(v-if="notification.type == 'follow'") Vous suit
     status.reblog(v-else-if="notification.status" :status="notification.status" :now="now"
-      :showMedia="showMedia" :withAccount="notification.type != 'mention'" @mark.stop.prevent="")
+      :showMedia="showMedia" :withAccount="notification.type != 'mention'" @mark="passMark")
 
   a.date(@click.stop.prevent="makeDismiss" style="margin-top: -1em") ❌
 </template>
@@ -38,6 +38,9 @@ export default {
   methods: {
     makeDismiss() {
       this.$emit('dismiss', this.notification.id)
+    },
+    passMark(action) {
+      this.$emit('mark', action)
     }
   }
 }

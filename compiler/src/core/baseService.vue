@@ -14,6 +14,11 @@ export default {
     settingBoolean: settingBooleanVue,
     settingInt: settingIntVue,
     settingString: settingStringVue
+  },
+  methods:{
+    passMove(move) {
+      this.$emit('move', move)
+    }
   }
 }
 </script>
