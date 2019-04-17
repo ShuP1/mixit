@@ -13,7 +13,7 @@
       setting-boolean(:id="'showMedia'" :title="'Show medias'" :value="showMedia" @change="saveOptionCouple")
   client(v-if="server && token" v-bind="$props")
   .auth(v-else)
-    form(@submit.prevent="setServer")
+    form(@submit.prevent="makeAuth")
       p
         label(for="server") Server:
         input#server(v-model="newServer" required)
@@ -73,25 +73,23 @@ export default { //TODO: Use oauth
     };
   },
   methods: {
-    setServer() {
-      axios.get(`https://${this.newServer}/api/v1/accounts/verify_credentials`, {
-        headers: { Authorization: "Bearer " + this.newToken },
+    getMe(server, token) {
+      return this.catchEmit(axios.get(`https://${server}/api/v1/accounts/verify_credentials`, {
+        headers: { Authorization: "Bearer " + token },
         timeout: this.timeout
-      }).then(() => this.saveOptions({ ...this.$props,
+      }))
+    },
+    makeAuth() {
+      this.getMe(this.newServer, this.newToken)
+        .then(() => this.saveOptions({ ...this.$props,
           server: this.newServer, token: this.newToken }))
-        .catch(this.emitError)
     }
   },
   created() {
     if(this.server && this.token) {
-      axios.get(`https://${this.server}/api/v1/accounts/verify_credentials`, {
-        headers: { Authorization: "Bearer " + this.token },
-        timeout: this.timeout
-      }).then(res => this.account = res.data)
-        .catch(err => {
-          this.emitError(err)
-          this.account.display_name = 'Failed'
-        })
+      this.getMe(this.server, this.token)
+        .then(res => this.account = res.data)
+        .catch(() => this.account.display_name = 'Failed')
     } else{
       this.account.display_name = 'First connection'
     }

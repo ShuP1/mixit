@@ -1,7 +1,9 @@
 <template lang="pug">
 .nextcloud-news(v-show="showEmpty || unreaded.length > 0 || !server || !token || !username")
   service-header(:emit="emit")
-    template(#title) Nextcloud News
+    template(#title)
+      | Nextcloud News
+      span.note(v-if="unreaded.length > 0")  ({{ unreaded.length }})
     template(#settings)
       setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="saveOptionCouple")
       setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="saveOptionCouple")
@@ -78,12 +80,11 @@ export default {
   },
   methods: {
     loadData() {
-      this.rest.get("/items", { params: { batchSize: this.buffer, type: 3, getRead: false } })
+      this.catchEmit(this.rest.get("/items", { params: { batchSize: this.buffer, type: 3, getRead: false } }))
         .then(res => this.unreaded = res.data.items.map(n => {
           n.open = false
           return n
         }))
-        .catch(this.emitError)
     },
     removeNews(id) {
       for (var i = this.unreaded.length - 1; i >= 0; i--) {
@@ -94,17 +95,15 @@ export default {
       }
     },
     makeRead(id) {
-      this.rest.put(`/items/${id}/read`)
+      this.catchEmit(this.rest.put(`/items/${id}/read`))
         .then(() => this.removeNews(id))
-        .catch(this.emitError)
     },
     setServer() {
-      axios.get(`https://${this.newServer}/index.php/apps/news/api/v1-2/folders`, {
+      this.catchEmit(axios.get(`https://${this.newServer}/index.php/apps/news/api/v1-2/folders`, {
         headers: { Authorization: 'Basic ' + btoa(this.newUsername + ':' + this.newToken) },
         timeout: this.timeout
-      }).then(() => this.saveOptions({ ...this.$props,
+      })).then(() => this.saveOptions({ ...this.$props,
           server: this.newServer, token: this.newToken, username: this.newUsername }))
-        .catch(this.emitError)
     }
   },
   created() {

@@ -32,6 +32,11 @@ input, select, button {
   font-size: 1.2em;
 }
 
+.note {
+  font-size: .7em;
+  vertical-align: text-top;
+}
+
 .letter {
   margin: 0 .5em;
 }

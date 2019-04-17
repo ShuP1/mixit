@@ -60,14 +60,13 @@ export default {
     onScroll(event) {
       if(!this.loadingOlder && event.target.scrollHeight - event.target.clientHeight - event.target.scrollTop - 100 < 0) {
         this.loadingOlder = true
-        this.rest
+        this.catchEmit(this.rest
           .get("/timelines/home", { params: { limit: this.buffer,
-            max_id: this.statues[this.statues.length - 1].id } })
+            max_id: this.statues[this.statues.length - 1].id } }))
           .then(res => {
             this.statues.push.apply(this.statues, res.data)
             this.loadingOlder = false
           })
-          .catch(this.emitError)
       } else if(event.target.scrollTop < 20) {
         this.statues.splice(this.buffer)
       }
@@ -92,19 +91,16 @@ export default {
       return (!status.in_reply_to_id || this.reply) && (!status.reblog || this.reblog)
     },
     onStatusMark(action) {
-      this.rest.post(`/statuses/${action.id}/${action.type}`)
+      this.catchEmit(this.rest.post(`/statuses/${action.id}/${action.type}`))
         .then(action.callback)
-        .catch(this.emitError)
     },
     onNotificationDismiss(id) {
-      this.rest.post('/notifications/dismiss', { id: id })
+      this.catchEmit(this.rest.post('/notifications/dismiss', { id: id }))
         .then(() => this.removeNotification(id))
-        .catch(this.emitError)
     },
     onNotificationsClear() {
-      this.rest.post('/notifications/clear')
+      this.catchEmit(this.rest.post('/notifications/clear'))
         .then(() => this.notifications.splice(0, this.notifications.length))
-        .catch(this.emitError)
     },
     setupStream() {
       const ws = new WebSocket(
@@ -138,15 +134,11 @@ export default {
     }
   },
   created() {
-    this.rest
-      .get("/timelines/home", { params: { limit: this.buffer } })
+    this.catchEmit(this.rest.get("/timelines/home", { params: { limit: this.buffer } }))
       .then(res => this.statues.push.apply(this.statues, res.data))
-      .catch(this.emitError)
 
-    this.rest
-      .get("/notifications", { params: { limit: this.buffer } })
+    this.catchEmit(this.rest.get("/notifications", { params: { limit: this.buffer } }))
       .then(res => this.notifications.push.apply(this.notifications, res.data))
-      .catch(this.emitError)
 
     this.setupStream()
   }

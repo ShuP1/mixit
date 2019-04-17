@@ -1,38 +1,37 @@
 <template lang="pug">
-div
-  .status
-    account(v-if="withAccount" :account="status.account" :showMedia="showMedia")
+.status
+  account(v-if="withAccount" :account="status.account" :showMedia="showMedia")
 
-    span.text-icon.letter(v-if="status.reblog") ⟳
+  span.text-icon.letter(v-if="status.reblog") ⟳
 
-    a.date(target="_blank" :href="status.uri")
-      from-now(:date="status.created_at" :now="now")
+  a.date(target="_blank" :href="status.uri")
+    from-now(:date="status.created_at" :now="now")
 
-    .content(:class="{ avatared: showMedia }")
-      template(v-if="!status.reblog")
-        .spoiler(v-if="status.spoiler_text" @click.stop.prevent="status.sensitive = !status.sensitive").
-          {{ status.spoiler_text || 'Spoiler' }} {{ status.sensitive ? '&rarr;' : '&darr;' }}
-        div(v-if="!status.spoiler_text || !status.sensitive")
-          .text(v-html="parseEmojis(status.content, status.emojis)")
-          a.media(v-for="media in status.media_attachments" :href="media.url" target="_blank")
-            template(v-if="showMedia")
-              img(v-if="media.type == 'image' || media.type == 'gifv'" :src="media.preview_url" :alt="media.description" :title="media.description")
-              .gif(v-if="media.type == 'gifv'") GIF
-            template(v-else) Hidden media
-      status.reblog(v-else :status="status.reblog" :now="now" :showMedia="showMedia")
+  .content(:class="{ avatared: showMedia }")
+    template(v-if="!status.reblog")
+      .spoiler(v-if="status.spoiler_text" @click.stop.prevent="status.sensitive = !status.sensitive").
+        {{ status.spoiler_text || 'Spoiler' }} {{ status.sensitive ? '&rarr;' : '&darr;' }}
+      div(v-if="!status.spoiler_text || !status.sensitive")
+        .text(v-html="parseEmojis(status.content, status.emojis)")
+        a.media(v-for="media in status.media_attachments" :href="media.url" target="_blank")
+          template(v-if="showMedia")
+            img(v-if="media.type == 'image' || media.type == 'gifv'" :src="media.preview_url" :alt="media.description" :title="media.description")
+            .gif(v-if="media.type == 'gifv'") GIF
+          template(v-else) Hidden media
+    status.reblog(v-else :status="status.reblog" :now="now" :showMedia="showMedia")
 
-    .meta(v-if="!status.reblog")
-      a.replies(@click.stop.prevent="makeReply(status)")
-        span.text-icon ✉
-        | {{ status.replies_count }}
-      a.reblogs(:class="{ colored: status.reblogged }" @click.stop.prevent="makeReblog(status)")
-        span.text-icon ⟳
-        | {{ status.reblogs_count }}
-      a.favourites(:class="{ colored: status.favourited }" @click.stop.prevent="makeFav(status)")
-        span.text-icon ⚝
-        | {{ status.favourites_count }}
-      a.fil(v-if="status.in_reply_to_id" @click.stop.prevent="showReply(status.in_reply_to_id)")
-        | Voir le fil
+  .meta(v-if="!status.reblog")
+    a.replies(@click.stop.prevent="makeReply(status)")
+      span.text-icon ✉
+      | {{ status.replies_count }}
+    a.reblogs(:class="{ colored: status.reblogged }" @click.stop.prevent="makeReblog(status)")
+      span.text-icon ⟳
+      | {{ status.reblogs_count }}
+    a.favourites(:class="{ colored: status.favourited }" @click.stop.prevent="makeFav(status)")
+      span.text-icon ⚝
+      | {{ status.favourites_count }}
+    a.fil(v-if="status.in_reply_to_id" @click.stop.prevent="showReply(status.in_reply_to_id)")
+      | Voir le fil
 </template>
 
 <script>

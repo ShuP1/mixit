@@ -119,17 +119,15 @@ export default {
       this.loadForecast()
     },
     getWeather(params) {
-      return this.rest.get('weather', { params: params })
-        .catch(this.emitError)
+      return this.catchEmit(this.rest.get('weather', { params: params }))
     },
     loadForecast() {
       if(this.weathers[this.selected]) {
-        this.rest.get('forecast', { params: {
+        this.catchEmit(this.rest.get('forecast', { params: {
           id: this.weathers[this.selected].id,
           cnt: this.forecastLimit
-        }})
+        }}))
           .then(res => this.forecast = res.data.list)
-          .catch(this.emitError)
       }
     },
     formatDate(dt) {

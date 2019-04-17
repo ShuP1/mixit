@@ -17,6 +17,12 @@ export default {
     },
     saveOptionCouple(couple) {
       this.emit('save', couple)
+    },
+    catchEmit(req) {
+      return req.catch(err => {
+        this.emitError(err)
+        throw err
+      })
     }
   }
 }
