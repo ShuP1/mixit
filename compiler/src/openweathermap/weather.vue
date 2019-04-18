@@ -15,7 +15,10 @@
 <script>
 export default {
   props: {
-    city: Object,
+    city: {
+      type: Object,
+      default: undefined
+    },
     selected: Boolean
   }
 }

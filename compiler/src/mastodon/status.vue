@@ -40,14 +40,17 @@ import { parseEmojisMixin } from './tools'
 import accountVue from './account.vue'
 
 export default {
-  name: "status",
-  mixins: [ timedMixin, parseEmojisMixin ],
+  name: 'Status',
   components: {
     account: accountVue,
     fromNow: fromNowVue
   },
+  mixins: [ timedMixin, parseEmojisMixin ],
   props: {
-    status: Object,
+    status: {
+      type: Object,
+      default: undefined
+    },
     withAccount: {
       type: Boolean,
       default: true

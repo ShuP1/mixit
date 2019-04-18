@@ -1,4 +1,5 @@
-//TODO: discord
+/* globals Vue */
+/* exported app */
 
 const servicesStorage = 'services'
 var app = new Vue({
@@ -71,12 +72,11 @@ var app = new Vue({
     },
     saveServices() {
       localStorage.setItem(servicesStorage, JSON.stringify(this.services))
-      this.$forceUpdate()
     },
     gridPos(id, position = {}) {
       return {
-        "grid-row": `${position.x || 1} / span ${position.h || 2}`,
-        "grid-column": `${position.y || id*2+1} / span ${position.w || 2}`
+        'grid-row': `${position.x || 1} / span ${position.h || 2}`,
+        'grid-column': `${position.y || id*2+1} / span ${position.w || 2}`
       }
     },
     makeEmiter(key) {

@@ -18,6 +18,7 @@
 </template>
 
 <script>
+/* global axios */
 import { timerMinin } from '../core/fromNow.vue'
 import serviceEmiterVue from '../core/serviceEmiter.vue'
 
@@ -30,19 +31,31 @@ import Loadable from '../core/loadable/Loadable'
 import loadableBlockVue from '../core/loadable/loadableBlock.vue'
 
 export default {
-  extends: serviceEmiterVue,
-  mixins: [ timerMinin ],
   components: {
     status: statusVue,
     notification: notificationVue,
     loadableBlock: loadableBlockVue
   },
+  extends: serviceEmiterVue,
+  mixins: [ timerMinin ],
   props: {
-    server: String,
-    token: String,
-    timeout: Number,
+    server: {
+      type: String,
+      default: undefined
+    },
+    token: {
+      type: String,
+      default: undefined
+    },
+    timeout: {
+      type: Number,
+      default: 5000
+    },
     reconnect: Boolean,
-    buffer: Number,
+    buffer: {
+      type: Number,
+      default: 20
+    },
     reblog: Boolean,
     reply: Boolean,
     showMedia: Boolean
@@ -56,12 +69,23 @@ export default {
       }),
       statues: new Loadable(),
       notifications: new Loadable()
-    };
+    }
   },
   computed: {
     hasNotifications() {
       return this.notifications.isSuccess() && this.notifications.get().length > 0
     }
+  },
+  created() {
+    this.statues.load(
+      this.getTimeline({}),
+      res => res.data)
+
+    this.notifications.load(
+      this.get('/notifications'),
+      res => res.data)
+
+    this.setupStream()
   },
   methods: {
     get(path, options = {}) {
@@ -118,10 +142,10 @@ export default {
             break
 
           case 'delete':
-            this.removeById(this.statues.get(), id)
+            this.removeById(this.statues.get(), payload.id)
             break
         }
-      };
+      }
       ws.onerror = this.emitError
       ws.onclose = () => {
         this.emitError(
@@ -131,17 +155,6 @@ export default {
         if (this.reconnect) setTimeout(() => this.setupStream(), this.timeout)
       }
     }
-  },
-  created() {
-    this.statues.load(
-      this.getTimeline({}),
-      res => res.data)
-
-    this.notifications.load(
-      this.get('/notifications'),
-      res => res.data)
-
-    this.setupStream()
   }
 }
 </script>

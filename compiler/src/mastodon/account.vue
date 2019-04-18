@@ -11,7 +11,10 @@ import { parseEmojisMixin } from './tools'
 export default {
   mixins: [ parseEmojisMixin ],
   props: {
-    account: Object,
+    account: {
+      type: Object,
+      default: undefined
+    },
     showMedia: {
       type: Boolean,
       default: true
@@ -20,8 +23,8 @@ export default {
   methods: {
     avatarStyle(avatar) {
       return {
-        "background-image": `url(${avatar})`
-      };
+        'background-image': `url(${avatar})`
+      }
     }
   }
 }

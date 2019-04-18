@@ -11,7 +11,7 @@ export default {
       responsive: true, maintainAspectRatio: false,
       legend: {
         labels: {
-         fontColor: "white"
+          fontColor: 'white'
         }
       },
       scales: {
@@ -19,7 +19,7 @@ export default {
           type: 'time',
           distribution: 'series',
           ticks: {
-            fontColor: "white",
+            fontColor: 'white',
             source: 'data',
             autoSkip: true,
             maxRotation: 0,
@@ -36,14 +36,14 @@ export default {
           display: true,
           position: 'left',
           ticks: {
-            fontColor: "white"
+            fontColor: 'white'
           }
         },{
           id: 'y-axis-rain',
           display: true,
           position: 'right',
           ticks: {
-            fontColor: "white",
+            fontColor: 'white',
             beginAtZero: true,
             suggestedMax: 1
           }
@@ -53,16 +53,16 @@ export default {
         intersect: false,
         callbacks: {
           title: function(tooltipItem, myData) {
-              var item = myData.datasets[tooltipItem[0].datasetIndex].data[tooltipItem[0].index]
-              return moment(item.x || item.t).format('HH[h]')
+            var item = myData.datasets[tooltipItem[0].datasetIndex].data[tooltipItem[0].index]
+            return moment(item.x || item.t).format('HH[h]')
           },
           label: function(tooltipItem, myData) {
-              var label = myData.datasets[tooltipItem.datasetIndex].label || '';
-              if (label) {
-                  label += ': ';
-              }
-              label += tooltipItem.value;
-              return label;
+            var label = myData.datasets[tooltipItem.datasetIndex].label || ''
+            if (label) {
+              label += ': '
+            }
+            label += tooltipItem.value
+            return label
           }
         }
       }

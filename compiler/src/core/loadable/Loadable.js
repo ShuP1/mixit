@@ -31,7 +31,7 @@ export default class {
   load(promise, then, reset = true) {
     if(reset)
       this.reset()
-    
+
     promise
       .then(res => this.success(then(res)))
       .catch(err => {

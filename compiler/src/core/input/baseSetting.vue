@@ -1,8 +1,14 @@
 <script>
 export default {
   props: {
-    id: String,
-    title: String
+    id: {
+      type: String,
+      default: undefined
+    },
+    title: {
+      type: String,
+      default: undefined
+    }
   },
   methods: {
     sendChange(value) {

@@ -1,7 +1,10 @@
 <script>
 export default {
   props: {
-    emit: Function
+    emit: {
+      type: Function,
+      default: undefined
+    }
   },
   methods:{
     emitError(err) {
@@ -9,6 +12,9 @@ export default {
     },
     saveOptions(options) {
       this.emit('saveAll', options)
+      this.$nextTick(function(){
+        this.$forceUpdate()
+      })
     },
     saveOption(key, value) {
       this.saveOptionCouple({
@@ -17,6 +23,9 @@ export default {
     },
     saveOptionCouple(couple) {
       this.emit('save', couple)
+      this.$nextTick(function(){
+        this.$forceUpdate()
+      })
     },
     catchEmit(req) {
       return req.catch(err => {

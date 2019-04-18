@@ -1,0 +1,1 @@
+export const CDN = 'https://cdn.discordapp.com'

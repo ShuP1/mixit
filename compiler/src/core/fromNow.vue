@@ -14,40 +14,45 @@ export const timedMixin = {
 
 export default {
   mixins: [ timedMixin ],
-  props: [ 'date' ],
+  props: {
+    date: {
+      type: Date,
+      default: Date.now
+    }
+  },
   computed: {
     timeSince() {
-      var seconds = Math.floor((this.now - new Date(this.date)) / 1000);
+      var seconds = Math.floor((this.now - new Date(this.date)) / 1000)
 
-      var interval = Math.floor(seconds / 31536000);
+      var interval = Math.floor(seconds / 31536000)
 
       if (interval > 1) {
-          return interval + " years";
+        return interval + ' years'
       }
-      interval = Math.floor(seconds / 2592000);
+      interval = Math.floor(seconds / 2592000)
       if (interval > 1) {
-          return interval + " months";
+        return interval + ' months'
       }
-      interval = Math.floor(seconds / 86400);
+      interval = Math.floor(seconds / 86400)
       if (interval > 1) {
-          return interval + " days";
+        return interval + ' days'
       }
-      interval = Math.floor(seconds / 3600);
+      interval = Math.floor(seconds / 3600)
       if (interval > 1) {
-          return interval + " hours";
+        return interval + ' hours'
       }
-      interval = Math.floor(seconds / 60);
+      interval = Math.floor(seconds / 60)
       if (interval > 1) {
-          return interval + " minutes";
+        return interval + ' minutes'
       }
-      return Math.floor(seconds) + " seconds";
+      return Math.floor(seconds) + ' seconds'
     }
   }
 }
 
 export const timerMinin = {
   created() {
-    let self = this;
+    let self = this
     setInterval(() => {
       self.now = Date.now()
     }, 30 * 1000)
@@ -57,5 +62,5 @@ export const timerMinin = {
       now: Date.now()
     }
   }
- }
+}
 </script>

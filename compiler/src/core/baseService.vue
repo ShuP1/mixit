@@ -12,7 +12,6 @@ import settingIntVue from './input/settingInt.vue'
 import settingStringVue from './input/settingString.vue'
 
 export default {
-  extends: serviceEmiterVue,
   components: {
     loadableBlock: loadableBlockVue,
     loadableInline: loadableInlineVue,
@@ -22,7 +21,8 @@ export default {
     settingBoolean: settingBooleanVue,
     settingInt: settingIntVue,
     settingString: settingStringVue
-  }
+  },
+  extends: serviceEmiterVue
 }
 
 export const Loadable = _Loadable

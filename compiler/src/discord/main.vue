@@ -19,18 +19,22 @@
 </template>
 
 <script>
+/* global axios */
 import baseServiceVue, { Loadable } from '../core/baseService.vue'
 
 import clientVue from './client.vue'
 
 export default { //TODO: Use oauth
-  name: 'discord',
-  extends: baseServiceVue,
+  name: 'Discord',
   components: {
     client: clientVue
   },
+  extends: baseServiceVue,
   props: {
-    token: String,
+    token: {
+      default: undefined,
+      type: String
+    },
     timeout: {
       default: 5000,
       type: Number
@@ -55,6 +59,9 @@ export default { //TODO: Use oauth
       account: new Loadable()
     }
   },
+  created() {
+    this.init()
+  },
   methods: {
     getMe(token) {
       return this.catchEmit(axios.get('https://discordapp.com/api/users/@me', {
@@ -76,9 +83,6 @@ export default { //TODO: Use oauth
       this.getMe(this.newToken)
         .then(() => this.saveOption('token', this.newToken))
     }
-  },
-  created() {
-    this.init()
   }
 }
 </script>

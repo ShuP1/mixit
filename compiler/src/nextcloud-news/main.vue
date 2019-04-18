@@ -32,6 +32,7 @@
 </template>
 
 <script>
+/* global axios */
 import baseServiceVue from '../core/baseService.vue'
 import fromNowVue, { timerMinin } from '../core/fromNow.vue'
 
@@ -39,16 +40,25 @@ import Loadable from '../core/loadable/Loadable'
 import Lists from '../core/Lists'
 
 export default {
-  name: 'nextcloud-news',
-  extends: baseServiceVue,
-  mixins: [ timerMinin ],
+  name: 'NextcloudNews',
   components: {
     fromNow: fromNowVue
   },
+  extends: baseServiceVue,
+  mixins: [ timerMinin ],
   props: {
-    server: String,
-    username: String,
-    token: String,
+    server: {
+      type: String,
+      default: undefined
+    },
+    username: {
+      type: String,
+      default: undefined
+    },
+    token: {
+      type: String,
+      default: undefined
+    },
     timeout: {
       default: 5000,
       type: Number
@@ -79,7 +89,7 @@ export default {
       newServer: this.server,
       newUsername: this.username,
       newToken: this.token,
-    };
+    }
   },
   computed: {
     hasNews() {
@@ -89,10 +99,13 @@ export default {
       return this.server && this.username && this.token
     }
   },
+  created() {
+    this.init()
+  },
   methods: {
     loadData() {
       this.news.load(
-        this.catchEmit(this.rest.get("/items", { params: { batchSize: this.buffer, type: 3, getRead: false } })),
+        this.catchEmit(this.rest.get('/items', { params: { batchSize: this.buffer, type: 3, getRead: false } })),
         res => res.data.items.map(n => {
           n.open = false
           return n
@@ -124,9 +137,6 @@ export default {
         this.init()
       })
     }
-  },
-  created() {
-    this.init()
   }
 }
 </script>

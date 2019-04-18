@@ -22,18 +22,21 @@ import accountVue from './account.vue'
 import statusVue from './status.vue'
 
 export default {
-  props: {
-    notification: Object,
-    showMedia: {
-      type: Boolean,
-      default: true
-    }
-  },
-  mixins: [ timedMixin ],
   components: {
     fromNow: fromNowVue,
     account: accountVue,
     status: statusVue
+  },
+  mixins: [ timedMixin ],
+  props: {
+    notification: {
+      type: Object,
+      default: undefined
+    },
+    showMedia: {
+      type: Boolean,
+      default: true
+    }
   },
   methods: {
     makeDismiss() {

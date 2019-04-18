@@ -9,6 +9,11 @@ block input
 import baseSettingVue from './baseSetting.vue'
 export default {
   extends: baseSettingVue,
-  props: { value: Number }
+  props: {
+    value: {
+      type: Number,
+      default: 1
+    }
+  }
 }
 </script>

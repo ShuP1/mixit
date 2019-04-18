@@ -26,21 +26,26 @@
 </template>
 
 <script>
+/* global axios */
 import baseServiceVue from '../core/baseService.vue'
+import Lists from '../core/Lists.js'
 import Loadable from '../core/loadable/Loadable'
 
 import chartVue from './chart.vue'
 import weatherVue from './weather.vue'
 
 export default {
-  name: 'openweathermap',
-  extends: baseServiceVue,
+  name: 'Openweathermap',
   components: {
     weather: weatherVue,
     chart: chartVue
   },
+  extends: baseServiceVue,
   props: {
-    token: String,
+    token: {
+      type: String,
+      default: undefined
+    },
     cities: {
       type: Array,
       default: function () {
@@ -78,7 +83,7 @@ export default {
       forecast: new Loadable(),
       selectedId: 0,
       showAdd: this.cities.length == 0
-    };
+    }
   },
   computed: {
     forecastChart() { return {
@@ -111,6 +116,9 @@ export default {
       return this.weathers.isSuccess() && this.weathers.get().length > 0
     }
   },
+  created() {
+    this.init()
+  },
   methods: {
     makeSelect(id) {
       this.selectedId = id
@@ -137,8 +145,8 @@ export default {
       } else this.forecast.fail('Any selection')
     },
     formatDate(dt) {
-       const date = new Date(dt * 1000)
-       return `${date.toLocaleDateString()} ${date.getHours()}h`
+      const date = new Date(dt * 1000)
+      return `${date.toLocaleDateString()} ${date.getHours()}h`
     },
     addCity(id) {
       this.cities.push({ id: id })
@@ -171,9 +179,6 @@ export default {
         this.init()
       })
     }
-  },
-  created() {
-    this.init()
   }
 }
 </script>

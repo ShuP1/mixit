@@ -28,21 +28,28 @@
 </template>
 
 <script>
+/* global axios */
 import baseServiceVue, { Loadable } from '../core/baseService.vue'
 
 import { parseEmojisMixin } from './tools'
 import clientVue from './client.vue'
 
 export default { //TODO: Use oauth
-  name: 'mastodon',
-  extends: baseServiceVue,
-  mixins: [ parseEmojisMixin ],
+  name: 'Mastodon',
   components: {
     client: clientVue
   },
+  extends: baseServiceVue,
+  mixins: [ parseEmojisMixin ],
   props: {
-    server: String,
-    token: String,
+    server: {
+      type: String,
+      default: undefined
+    },
+    token: {
+      type: String,
+      default: undefined
+    },
     timeout: {
       default: 5000,
       type: Number
@@ -73,12 +80,15 @@ export default { //TODO: Use oauth
       newServer: this.server,
       newToken: this.token,
       account: new Loadable()
-    };
+    }
+  },
+  created() {
+    this.init()
   },
   methods: {
     getMe(server, token) {
       return this.catchEmit(axios.get(`https://${server}/api/v1/accounts/verify_credentials`, {
-        headers: { Authorization: "Bearer " + token },
+        headers: { Authorization: 'Bearer ' + token },
         timeout: this.timeout
       }))
     },
@@ -100,9 +110,6 @@ export default { //TODO: Use oauth
           this.init()
         })
     }
-  },
-  created() {
-    this.init()
   }
 }
 </script>
