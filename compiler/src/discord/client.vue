@@ -2,7 +2,7 @@
 .client(@scroll.passive="onScroll")
   loadable-block.list(:loadable="guilds")
     template(#success)
-      guild(v-for="guild in guilds.get()" :key="guild.id" :guild="guild" :showMedia="showMedia")
+      guild(v-for="guild in guilds.get()" :key="guild.id" :guild="guild" :showMedia="options.showMedia")
 </template>
 
 <script>
@@ -22,33 +22,18 @@ export default {
   extends: serviceEmiterVue,
   mixins: [ timerMinin ],
   props: {
-    token: {
-      default: undefined,
-      type: String
+    auth: {
+      type: Object,
+      default: () => ({})
     },
-    timeout: {
-      default: 5000,
-      type: Number
-    },
-    reconnect: {
-      default: false,
-      type: Boolean
-    },
-    buffer: {
-      default: 20,
-      type: Number
-    },
-    showMedia: {
-      default: true,
-      type: Boolean
-    }
+    options: { type: Object, default: () => ({}) }
   },
   data() {
     return {
       rest: axios.create({
         baseURL: 'https://discordapp.com/api/',
-        headers: { Authorization: this.token },
-        timeout: this.timeout
+        headers: { Authorization: this.auth.token },
+        timeout: this.options.timeout
       }),
       guilds: new Loadable()
     }
@@ -62,7 +47,7 @@ export default {
   },
   methods: {
     get(path, options = {}) {
-      return this.catchEmit(this.rest.get(path, { params: { limit: this.buffer, ...options } }))
+      return this.catchEmit(this.rest.get(path, { params: { limit: this.options.buffer, ...options } }))
     },
     onScroll() {
       /*if(!this.loadingOlder && event.target.scrollHeight - event.target.clientHeight - event.target.scrollTop - 100 < 0) {

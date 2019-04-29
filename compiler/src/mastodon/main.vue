@@ -2,113 +2,64 @@
 .mastodon
   service-header(:emit="emit")
     template(#title)
-      | Mastodon: 
+      | {{ serviceName }}: 
       loadable-inline(:loadable="account")
         template(#success)
-          span(v-html="parseEmojis(account.data.display_name, account.data.emojis) + '@' + server")
+          span(v-html="parseEmojis(account.data.display_name, account.data.emojis) + '@' + auth.server")
     template(#settings)
-      setting-boolean(:id="'reconnect'" :title="'Reconnect'" :value="reconnect" @change="saveOptionCouple")
-      setting-boolean(:id="'reblog'" :title="'Show reblogs'" :value="reblog" @change="saveOptionCouple")
-      setting-boolean(:id="'reply'" :title="'Show replies'" :value="reply" @change="saveOptionCouple")
-      setting-int(:id="'buffer'" :title="'Buffer size'" :value="buffer" @change="saveOptionCouple")
-      setting-boolean(:id="'showMedia'" :title="'Show medias'" :value="showMedia" @change="saveOptionCouple")
+      setting-boolean(:id="'reconnect'" :title="'Reconnect'" :value="params.reconnect" @change="saveOptionCouple")
+      setting-boolean(:id="'reblog'" :title="'Show reblogs'" :value="params.reblog" @change="saveOptionCouple")
+      setting-boolean(:id="'reply'" :title="'Show replies'" :value="params.reply" @change="saveOptionCouple")
+      setting-int(:id="'buffer'" :title="'Buffer size'" :value="params.buffer" @change="saveOptionCouple")
+      setting-boolean(:id="'showMedia'" :title="'Show medias'" :value="params.showMedia" @change="saveOptionCouple")
   loadable-block.service-content(:loadable="account")
     template(#success)
-      client(v-bind="$props")
+      client(:auth="auth" :options="params" :emit="emit")
     template(#error)
       form(@submit.prevent="makeAuth")
         p
           label(for="server") Server:
-          input#server(v-model="newServer" required)
+          input#server(v-model="newAuth.server" required)
         p
           label(for="token") Token:
-          input#token(v-model="newToken" required)
+          input#token(v-model="newAuth.token" required)
         p
           input(type="submit" value="Connect")
 </template>
 
 <script>
 /* global axios */
-import baseServiceVue, { Loadable } from '../core/baseService.vue'
+import accountServiceVue from '../core/accountService.vue'
 
 import { parseEmojisMixin } from './tools'
 import clientVue from './client.vue'
 
 export default { //TODO: Use oauth
   name: 'Mastodon',
-  components: {
-    client: clientVue
-  },
-  extends: baseServiceVue,
+  components: { client: clientVue },
+  extends: accountServiceVue,
   mixins: [ parseEmojisMixin ],
-  props: {
-    server: {
-      type: String,
-      default: undefined
+  computed: {
+    params() {
+      return { timeout: 5000, reconnect: false, buffer: 20, reblog: true, reply: false,
+        showMedia: true, ...this.options }
     },
-    token: {
-      type: String,
-      default: undefined
+    isSetup() {
+      return this.auth && this.auth.server && this.auth.token
     },
-    timeout: {
-      default: 5000,
-      type: Number
-    },
-    reconnect: {
-      default: false,
-      type: Boolean
-    },
-    buffer: {
-      default: 20,
-      type: Number
-    },
-    reblog: {
-      default: true,
-      type: Boolean
-    },
-    reply: {
-      default: false,
-      type: Boolean
-    },
-    showMedia: {
-      default: true,
-      type: Boolean
+    serviceName() {
+      return 'Mastodon'
     }
-  },
-  data() {
-    return {
-      newServer: this.server,
-      newToken: this.token,
-      account: new Loadable()
-    }
-  },
-  created() {
-    this.init()
   },
   methods: {
-    getMe(server, token) {
-      return this.catchEmit(axios.get(`https://${server}/api/v1/accounts/verify_credentials`, {
+    getAccount({ server, token }) {
+      return axios.get(`https://${server}/api/v1/accounts/verify_credentials`, {
         headers: { Authorization: 'Bearer ' + token },
-        timeout: this.timeout
-      }))
+        timeout: this.params.timeout
+      })
     },
-    init() {
-      if(this.server && this.token) {
-        this.account.load(
-          this.getMe(this.server, this.token),
-          res => res.data
-        )
-      } else {
-        this.account.fail('First connection')
-      }
-    },
-    makeAuth() {
-      this.getMe(this.newServer, this.newToken)
-        .then(() => {
-          this.saveOptions({ ...this.$props,
-            server: this.newServer, token: this.newToken })
-          this.init()
-        })
+    mapServiceName(res, { server }) {
+      return `${this.serviceName} ${this.mapAccount(res).acct}@${server}`
     }
   }
 }

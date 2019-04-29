@@ -17,7 +17,6 @@ export default class {
     this.loaded = false
     this.data = undefined
     this.error = undefined
-    this.loadingMore = false
   }
   success(data) {
     this.loaded = true
@@ -38,13 +37,5 @@ export default class {
         this.fail(err)
         throw err
       })
-  }
-
-  loadMore(promise, then) {
-    this.loadingMore = true
-    promise.then(res => {
-      then(res, this.data, this)
-      this.loadingMore = false
-    })
   }
 }

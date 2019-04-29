@@ -5,7 +5,7 @@
     loadable-block.list(:loadable="statues")
       template(#success)
         template(v-for="status in statues.get()")
-          status(v-if="showStatus(status)" :key="status.id" :status="status" :now="now" :showMedia="showMedia" @mark="onStatusMark")
+          status(v-if="showStatus(status)" :key="status.id" :status="status" :now="now" :showMedia="options.showMedia" @mark="onStatusMark")
         .status(v-show="statues.loadingMore")
           .service-loader
   .notifications(v-if="hasNotifications")
@@ -14,7 +14,7 @@
       span.date(@click.stop.prevent="onNotificationsClear") ❌
     .list
       notification(v-for="notification in notifications.get()" :key="notification.id" :notification="notification" :now="now"
-        :showMedia="showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark")
+        :showMedia="options.showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark")
 </template>
 
 <script>
@@ -28,6 +28,7 @@ import statusVue from './status.vue'
 import notificationVue from './notification.vue'
 
 import Loadable from '../core/loadable/Loadable'
+import ReLoadable from '../core/loadable/ReLoadable'
 import loadableBlockVue from '../core/loadable/loadableBlock.vue'
 
 export default {
@@ -39,35 +40,20 @@ export default {
   extends: serviceEmiterVue,
   mixins: [ timerMinin ],
   props: {
-    server: {
-      type: String,
-      default: undefined
+    auth: {
+      type: Object,
+      default: () => ({})
     },
-    token: {
-      type: String,
-      default: undefined
-    },
-    timeout: {
-      type: Number,
-      default: 5000
-    },
-    reconnect: Boolean,
-    buffer: {
-      type: Number,
-      default: 20
-    },
-    reblog: Boolean,
-    reply: Boolean,
-    showMedia: Boolean
+    options: { type: Object, default: () => ({}) }
   },
   data() {
     return {
       rest: axios.create({
-        baseURL: `https://${this.server}/api/v1/`,
-        headers: { Authorization: 'Bearer ' + this.token },
-        timeout: this.timeout
+        baseURL: `https://${this.auth.server}/api/v1/`,
+        headers: { Authorization: 'Bearer ' + this.auth.token },
+        timeout: this.options.timeout
       }),
-      statues: new Loadable(),
+      statues: new ReLoadable(),
       notifications: new Loadable()
     }
   },
@@ -89,7 +75,7 @@ export default {
   },
   methods: {
     get(path, options = {}) {
-      return this.catchEmit(this.rest.get(path, { params: { limit: this.buffer, ...options } }))
+      return this.catchEmit(this.rest.get(path, { params: { limit: this.options.buffer, ...options } }))
     },
     post(path, options = {}) {
       return this.catchEmit(this.rest.post(path, options))
@@ -104,14 +90,14 @@ export default {
           (res, statues) => Lists.pushAll(statues, res.data)
         )
       } else if(event.target.scrollTop < 20) {
-        this.statues.get().splice(this.buffer)
+        this.statues.get().splice(this.options.buffer)
       }
     },
     removeById(ls, id) {
       Lists.removeFirst(ls, e => e.id === id)
     },
     showStatus(status) {
-      return (!status.in_reply_to_id || this.reply) && (!status.reblog || this.reblog)
+      return (!status.in_reply_to_id || this.options.reply) && (!status.reblog || this.options.reblog)
     },
     onStatusMark(action) {
       this.post(`/statuses/${action.id}/${action.type}`)
@@ -127,7 +113,7 @@ export default {
     },
     setupStream() {
       const ws = new WebSocket(
-        `wss://${this.server}/api/v1/streaming?access_token=${this.token}&stream=user`
+        `wss://${this.auth.server}/api/v1/streaming?access_token=${this.auth.token}&stream=user`
       )
       ws.onmessage = event => {
         event = JSON.parse(event.data)
@@ -150,9 +136,9 @@ export default {
       ws.onclose = () => {
         this.emitError(
           'Mastodon stream disconnected !' +
-            (this.reconnect ? ' Reconnecting...' : '')
+            (this.options.reconnect ? ' Reconnecting...' : '')
         )
-        if (this.reconnect) setTimeout(() => this.setupStream(), this.timeout)
+        if (this.options.reconnect) setTimeout(() => this.setupStream(), this.options.timeout)
       }
     }
   }

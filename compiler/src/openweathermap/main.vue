@@ -1,10 +1,10 @@
 <template lang="pug">
 .openweathermap
   service-header(:emit="emit")
-    template(#title) OpenWeatherMap
+    template(#title) {{ serviceName }}
     template(#settings)
-      setting-int(:id="'update'" :title="'Update interval'" :value="update" @change="saveOptionCouple")
-      setting-int(:id="'forecastLimit'" :title="'Forecast limit'" :value="forecastLimit" @change="saveOptionCouple")
+      setting-int(:id="'update'" :title="'Update interval'" :value="params.update" @change="saveOptionCouple")
+      setting-int(:id="'forecastLimit'" :title="'Forecast limit'" :value="params.forecastLimit" @change="saveOptionCouple")
       p.setting
         button(@click="showAdd = true") Add city
   loadable-block(:loadable="weathers")
@@ -20,14 +20,14 @@
       form(@submit.prevent="makeAuth")
         p
           label(for="token") Token:
-          input#token(v-model="newToken" required)
+          input#token(v-model="newAuth.token" required)
         p
           input(type="submit" value="Connect")
 </template>
 
 <script>
 /* global axios */
-import baseServiceVue from '../core/baseService.vue'
+import connectedServiceVue from '../core/connectedService.vue'
 import Lists from '../core/Lists.js'
 import Loadable from '../core/loadable/Loadable'
 
@@ -40,52 +40,30 @@ export default {
     weather: weatherVue,
     chart: chartVue
   },
-  extends: baseServiceVue,
-  props: {
-    token: {
-      type: String,
-      default: undefined
-    },
-    cities: {
-      type: Array,
-      default: function () {
-        return []
-      }
-    },
-    timeout: {
-      default: 5000,
-      type: Number
-    },
-    update: {
-      default: 10 * 60, //10min
-      type: Number
-    },
-    lang: {
-      default: 'fr',
-      type: String
-    },
-    forecastLimit: {
-      default: 9,
-      type: Number
-    }
-  },
+  extends: connectedServiceVue,
   data() {
     return {
-      rest: axios.create({
-        baseURL: 'https://api.openweathermap.org/data/2.5/',
-        params: {
-          appid: this.token, units: 'metric', lang: this.lang
-        },
-        timeout: this.timeout
-      }),
-      newToken: this.token,
+      rest: undefined, //NOTE: set in this.init()
       weathers: new Loadable(),
       forecast: new Loadable(),
       selectedId: 0,
-      showAdd: this.cities.length == 0
+      showAdd: false
     }
   },
   computed: {
+    params() {
+      return { cities: [], timeout: 5000, update: 10 * 60, lang: 'fr',
+        forecastLimit: 9, ...this.options }
+    },
+    isSetup() {
+      return this.auth && this.auth.token
+    },
+    serviceName() {
+      return 'OpenWeatherMap'
+    },
+    connector() {
+      return this.weathers
+    },
     forecastChart() { return {
       datasets: [{
         type: 'line',
@@ -117,7 +95,7 @@ export default {
     }
   },
   created() {
-    this.init()
+    this.$watch('options.cities', this.init)
   },
   methods: {
     makeSelect(id) {
@@ -138,7 +116,7 @@ export default {
       if(this.selected) {
         this.forecast.load(
           this.catchEmit(this.rest.get('forecast', { params: {
-            id: this.selected.id, cnt: this.forecastLimit
+            id: this.selected.id, cnt: this.params.forecastLimit
           }})),
           res => res.data.list
         )
@@ -149,34 +127,38 @@ export default {
       return `${date.toLocaleDateString()} ${date.getHours()}h`
     },
     addCity(id) {
-      this.cities.push({ id: id })
-      this.saveOption('cities', this.cities)
+      this.params.cities.push({ id: id })
+      this.saveOption('cities', this.params.cities)
     },
     removeCity(key) {
-      Lists.removeAt(this.cities, key)
-      this.saveOption('cities', this.cities)
+      Lists.removeAt(this.params.cities, key)
+      this.saveOption('cities', this.params.cities)
     },
-    init() {
-      if(this.token) {
-        if(this.cities.length > 0) {
-          axios.all(this.cities.map(city => this.getWeather(city)))
-            .then(axios.spread((...ress) =>
-              this.weathers.success(ress.map(r => r.data))))
-            .then(this.loadForecast)
-            .catch(this.weathers.fail)
+    load() {
+      this.rest = axios.create({
+        baseURL: 'https://api.openweathermap.org/data/2.5/',
+        params: {
+          appid: this.auth.token, units: 'metric', lang: this.params.lang
+        },
+        timeout: this.params.timeout
+      }) //NOTE: required by this.params
+      this.showAdd = this.params.cities.length == 0
 
-          if(this.update > 0)
-            setInterval(this.updateData, this.update * 1000)
-        } else this.weathers.success([])
-      } else this.weathers.fail('First connection')
+      if(this.params.cities.length > 0) {
+        axios.all(this.params.cities.map(city => this.getWeather(city)))
+          .then(axios.spread((...ress) =>
+            this.weathers.success(ress.map(r => r.data))))
+          .then(this.loadForecast)
+          .catch(this.weathers.fail)
+
+        if(this.update > 0)
+          setInterval(this.updateData, this.params.update * 1000)
+      } else this.weathers.success([])
     },
-    makeAuth() {
-      this.catchEmit(axios.get('https://api.openweathermap.org/data/2.5/weather', {
-        params: { q: 'London', appid: this.newToken },
-        timeout: this.timeout
-      })).then(() => {
-        this.saveOption('token', this.newToken)
-        this.init()
+    checkAuth({ token }) {
+      return axios.get('https://api.openweathermap.org/data/2.5/weather', {
+        params: { q: 'London', appid: token },
+        timeout: this.params.timeout
       })
     }
   }

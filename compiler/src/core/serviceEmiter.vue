@@ -11,10 +11,7 @@ export default {
       this.emit('error', err)
     },
     saveOptions(options) {
-      this.emit('saveAll', options)
-      this.$nextTick(function(){
-        this.$forceUpdate()
-      })
+      this.emit('saveOptions', options)
     },
     saveOption(key, value) {
       this.saveOptionCouple({
@@ -22,9 +19,11 @@ export default {
       })
     },
     saveOptionCouple(couple) {
-      this.emit('save', couple)
-      this.$nextTick(function(){
-        this.$forceUpdate()
+      this.emit('saveOption', couple)
+    },
+    saveService(name, auth) {
+      this.emit('saveService', {
+        name: name, auth: auth
       })
     },
     catchEmit(req) {

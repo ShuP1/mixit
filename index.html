@@ -21,15 +21,35 @@
         <div id="errors" v-show="errors">
             <p class="error" v-for="(error, key) in errors" @click="removeError(key)">{{ error }}</p>
         </div>
-        <div id="manager">
-            <button @click="showManager = !showManager">+</button>
-            <input v-show="showManager" v-model="newService" @keyup.enter="addService">
-        </div>
-        <div id="services">
-            <component
-                v-for="(service, key) in services" :is="service.type" :emit="makeEmiter(key)"
-                :key="key" v-bind="service.options" :style="gridPos(key, service.position)"
-            />
+        <div id="content">
+            <div id="services">
+                <div class="tile" v-if="layout" v-for="tile in layoutTiles" :style="tile.grid">
+                    <component :is="tile.service.type" :emit="tile.emiter" :auth="tile.service.auth" :options="tile.options" />
+                </div>
+            </div>
+            <button id="showManager" @click="showManager = !showManager">{{ showManager ? '▼' : '▲' }}</button>
+            <div id="manager" v-show="showManager">
+                <div>
+                    <input v-model="newService" @keyup.enter="addService" placeholder="service">
+                </div>
+                <div id="layout-select">
+                    <div class="layout" v-for="(layout, id) in layouts">
+                        <template v-if="layoutId == id">
+                            <input :value="layout.name" @keyup.ctrl.delete="removeSelectedLayout()"
+                                @keyup.enter="renameSelectedLayout($event.target.value)">
+                        </template>
+                        <button v-else @click="layoutId = id">{{ layout.name }}</button>
+                    </div>
+                    <div><button @click="addLayout">+</button></div>
+                </div>
+                <div>
+                    <select @change="showService($event.target.value)">
+                        <option v-for="(service, key) in services.get()" :value="key">
+                            {{ service.name || service.type }}
+                        </option>
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
     <script src="main.js"></script>

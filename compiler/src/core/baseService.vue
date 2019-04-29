@@ -22,7 +22,38 @@ export default {
     settingInt: settingIntVue,
     settingString: settingStringVue
   },
-  extends: serviceEmiterVue
+  extends: serviceEmiterVue,
+  props: {
+    auth: {
+      type: Object,
+      default: () => ({})
+    },
+    options: {
+      type: Object,
+      default: () => ({})
+    }
+  },
+  data() {
+    return {
+      newAuth: {}
+    }
+  },
+  watch: {
+    auth() {
+      this.init()
+    }
+  },
+  created() {
+    this.init()
+  },
+  methods: {
+    init() {
+      this.mustDefine('init() method')
+    },
+    mustDefine(name) {
+      this.emitError('Must define ' + name)
+    }
+  }
 }
 
 export const Loadable = _Loadable

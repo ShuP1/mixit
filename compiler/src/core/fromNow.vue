@@ -16,7 +16,7 @@ export default {
   mixins: [ timedMixin ],
   props: {
     date: {
-      type: Date,
+      type: [Date, Number, String],
       default: Date.now
     }
   },

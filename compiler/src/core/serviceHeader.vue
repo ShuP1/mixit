@@ -8,6 +8,7 @@
       @keyup.left.ctrl.exact="onMove('y', -1)" @keyup.right.ctrl.exact="onMove('y', 1)"
       @keyup.up.alt.exact="onMove('h', -1)" @keyup.down.alt.exact="onMove('h', 1)"
       @keyup.left.alt.exact="onMove('w', -1)" @keyup.right.alt.exact="onMove('w', 1)"
+      @keyup.delete.ctrl.exact="onRemove" @keyup.delete.alt.exact="onRemoveService"
     )
     slot(name="settings")
 </template>
@@ -27,6 +28,12 @@ export default {
     onMove(type, direction) {
       this.emit('move', { type: type, direction: direction })
     },
+    onRemove() {
+      this.emit('remove', { })
+    },
+    onRemoveService() {
+      this.emit('removeService', { })
+    }
   }
 }
 </script>
