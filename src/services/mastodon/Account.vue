@@ -8,7 +8,7 @@ a.account(target="_blank" :href="account.url")
 <script lang="ts">
 import { Component, Mixins, Prop } from 'vue-property-decorator'
 
-import ShowMediaMixin from '../../components/ShowMediaMixin'
+import ShowMediaMixin from '@/components/ShowMediaMixin'
 import { ParseEmojisMixin } from './ParseEmojisMixin'
 import { Account as IAccount } from './Types'
 

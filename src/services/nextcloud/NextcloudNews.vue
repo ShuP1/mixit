@@ -35,13 +35,13 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import { Component, Mixins } from 'vue-property-decorator'
 
-import ConnectedService from '../../components/service/ConnectedService'
-import ServiceHeaderVue from '../../components/ServiceHeader.vue'
-import FromNowVue from '../../components/time/FromNow.vue'
-import TimerMixin from '../../components/time/TimerMixin'
-import Lists from '../../helpers/lists/Lists'
-import AxiosLoadable from '../../helpers/loadable/AxiosLoadable'
-import { Auth } from '../../types/App'
+import ConnectedService from '@/components/service/ConnectedService'
+import ServiceHeaderVue from '@/components/ServiceHeader.vue'
+import FromNowVue from '@/components/time/FromNow.vue'
+import TimerMixin from '@/components/time/TimerMixin'
+import Lists from '@/helpers/lists/Lists'
+import AxiosLoadable from '@/helpers/loadable/AxiosLoadable'
+import { Auth } from '@/types/App'
 
 interface News {
   id: number
@@ -144,17 +144,17 @@ export default class NextcloudNews extends Mixins<ConnectedService<object, objec
 </script>
 
 <style lang="sass">
-@import '../../common.sass'
+@import '@/common.sass'
 
 .nextcloud-news
   .unreaded
     overflow-y: auto
-  .news
-    @include tile
-    .date
-      float: right
-    .read
-      margin-right: .5em
-    .content
-      padding: $borderRadius
+    @include group-tile
+    .news
+      .date
+        float: right
+      .read
+        margin-right: .5em
+      .content
+        padding: $borderRadius
 </style>

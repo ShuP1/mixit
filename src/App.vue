@@ -266,7 +266,7 @@ body
   background-color: $backColor
   color: $foreColor
 
-a
+a, .osef
   text-decoration: none
   color: $noneColor
 
@@ -294,10 +294,13 @@ input, select, button
 .colored
   color: orange
 
+.danger
+  color: #fdd
+
 #errors
   position: absolute
   .error
-    @include tile
+    @include main-tile
 
 #content
   display: flex
@@ -310,7 +313,7 @@ input, select, button
 
 #manager
   background-color: $tileColor
-  border-radius: $borderRadius
+  @include rounded
   padding-left: 1em
   height: 1.3em
   display: flex
@@ -335,7 +338,7 @@ input, select, button
       flex-direction: column
       .service-header
         .title, .settings
-          @include tile
+          @include main-tile
         .title
           font-size: large
           text-align: center

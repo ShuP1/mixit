@@ -3,13 +3,31 @@ $borderRadius: .3em
 
 $backColor: #333
 $tileColor: #222
-$darkColor: #111
+$darkColor: #151515
 $halfColor: #999
 $noneColor: #aaa
 $foreColor: #eee
 
+@mixin rounded
+  border-radius: $borderRadius
+
 @mixin tile
+  @include rounded
   margin: $borderRadius
   background-color: $tileColor
-  border-radius: $borderRadius
+
+@mixin main-tile
+  @include tile
   padding: $borderRadius
+
+@mixin group-tile
+  @include main-tile
+  padding: $borderRadius / 2
+  & > div
+    @include rounded
+    padding: $borderRadius
+    margin: $borderRadius / 2
+    background-color: $darkColor
+    border: 1px solid $backColor
+    &.selected
+      border-color: $halfColor

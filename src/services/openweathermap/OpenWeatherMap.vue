@@ -10,10 +10,10 @@
   loadable-block(:loadable="weathers")
     template(#success)
       .list
-        weather(v-for="(city, id) in weathers.get().data" :key="id" :selected="weathers.get().selectedId == id"
+        weather(v-for="(city, id) in weathers.get().data" :key="id" :class="{ selected: weathers.get().isSelected(id) }"
           :city="city" @select="makeSelect(id)" @remove="removeCity(id)")
         input.weather(v-show="showAdd" placeholder="city id" @keyup.enter="addCity(parseInt($event.target.value))")
-      loadable-block(:loadable="forecast").forecast
+      loadable-block.forecast(:loadable="forecast")
         template(#success)
           chart.chart(:chartData="forecastChart")
     template(#error)
@@ -29,12 +29,12 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import { Component } from 'vue-property-decorator'
 
-import ConnectedService from '../../components/service/ConnectedService'
-import ServiceHeaderVue from '../../components/ServiceHeader.vue'
-import Lists from '../../helpers/lists/Lists'
-import { Selectable } from '../../helpers/lists/Selectable'
-import AxiosLoadable from '../../helpers/loadable/AxiosLoadable'
-import { Auth } from '../../types/App'
+import ConnectedService from '@/components/service/ConnectedService'
+import ServiceHeaderVue from '@/components/ServiceHeader.vue'
+import Lists from '@/helpers/lists/Lists'
+import { Selectable } from '@/helpers/lists/Selectable'
+import AxiosLoadable from '@/helpers/loadable/AxiosLoadable'
+import { Auth } from '@/types/App'
 import Chart from './Chart'
 import WeatherVue, { IWeather } from './Weather.vue'
 
@@ -207,7 +207,7 @@ export default class OpenWeatherMap extends ConnectedService<object, object> {
 </script>
 
 <style lang="sass">
-@import '../../common.sass'
+@import '@/common.sass'
 
 .openweathermap
   .loadable-block
@@ -218,10 +218,11 @@ export default class OpenWeatherMap extends ConnectedService<object, object> {
   .list
     display: flex
     flex-wrap: wrap
-  .weather, .forecast
+    @include group-tile
+  .weather
     flex: 1
-    @include tile
   .forecast
+    @include main-tile
     flex: 1
     overflow: hidden
     height: 100%

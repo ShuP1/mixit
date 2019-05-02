@@ -38,9 +38,9 @@
 <script lang="ts">
 import { Component, Emit, Mixins, Prop } from 'vue-property-decorator'
 
-import ShowMediaMixin from '../../components/ShowMediaMixin'
-import FromNowVue from '../../components/time/FromNow.vue'
-import TimedMixin from '../../components/time/TimedMixin'
+import ShowMediaMixin from '@/components/ShowMediaMixin'
+import FromNowVue from '@/components/time/FromNow.vue'
+import TimedMixin from '@/components/time/TimedMixin'
 import AccountVue from './Account.vue'
 import { ParseEmojisMixin } from './ParseEmojisMixin'
 import { MarkMessage, Status as IStatus } from './Types'

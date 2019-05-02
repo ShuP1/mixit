@@ -26,4 +26,10 @@ export class Selectable<T> {
     return this
   }
 
+  with(call: (selected: T) => void) {
+    if (this.selected) {
+      call(this.selected)
+    }
+  }
+
 }

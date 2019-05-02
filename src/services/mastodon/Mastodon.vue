@@ -31,9 +31,9 @@
 import axios, { AxiosResponse } from 'axios'
 import { Component, Mixins } from 'vue-property-decorator'
 
-import AccountService from '../../components/service/AccountService'
-import ServiceHeaderVue from '../../components/ServiceHeader.vue'
-import { Auth } from '../../types/App'
+import AccountService from '@/components/service/AccountService'
+import ServiceHeaderVue from '@/components/ServiceHeader.vue'
+import { Auth } from '@/types/App'
 import ClientVue from './Client.vue'
 import { ParseEmojisMixin } from './ParseEmojisMixin'
 import { Account, Options } from './Types'

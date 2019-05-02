@@ -9,7 +9,7 @@ export default class AxiosLoadable<T, E> extends ErrorLoadable<T, E> {
       this.reset()
     }
 
-    promise
+    return promise
       .then(res => this.success(then(res)))
       .catch(err => {
         this.fail(err)

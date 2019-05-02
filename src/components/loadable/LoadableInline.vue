@@ -6,18 +6,10 @@ span.loadable-inline
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Component } from 'vue-property-decorator'
 
-import ErrorLoadable from '../../helpers/loadable/ErrorLoadable'
+import Loadable from './Loadable'
 
 @Component
-export default class LoadableInline<T, E> extends Vue {
-
-  @Prop()
-  readonly loadable!: ErrorLoadable<T, E>
-
-  get get() {
-    return this.loadable.get()
-  }
-}
+export default class LoadableInline<T, E> extends Loadable<T, E> { }
 </script>

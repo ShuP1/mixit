@@ -21,12 +21,12 @@
 import axios, { AxiosResponse } from 'axios'
 import { Component, Mixins } from 'vue-property-decorator'
 
-import LoadableBlockVue from '../../components/loadable/LoadableBlock.vue'
-import ServiceClient from '../../components/ServiceClient'
-import TimerMixin from '../../components/time/TimerMixin'
-import Lists from '../../helpers/lists/Lists'
-import AxiosLodable from '../../helpers/loadable/AxiosLoadable'
-import AxiosLodableMore from '../../helpers/loadable/AxiosLoadableMore'
+import LoadableBlockVue from '@/components/loadable/LoadableBlock.vue'
+import ServiceClient from '@/components/ServiceClient'
+import TimerMixin from '@/components/time/TimerMixin'
+import Lists from '@/helpers/lists/Lists'
+import AxiosLodable from '@/helpers/loadable/AxiosLoadable'
+import AxiosLodableMore from '@/helpers/loadable/AxiosLoadableMore'
 import { AUTH, getRest } from './Mastodon.vue'
 import NotificationVue from './Notification.vue'
 import StatusVue from './Status.vue'
@@ -78,14 +78,11 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
   }
 
   onScroll(event: any) {
-    if(!this.statues.isLoadingMore && event.target.scrollHeight - event.target.clientHeight - event.target.scrollTop - 100 < 0) {
-      this.statues.loadMore(
-        this.getTimeline({ max_id: this.statues.map(s => Lists.last(s).id , 0) }),
-        (res, statues) => Lists.pushAll(statues, res.data)
-      )
-    } else if(event.target.scrollTop < 20) {
-      this.statues.with(s => Lists.removeFrom(s, this.options.buffer))
-    }
+    this.statues.handleScroll(event.target,
+      st => this.getTimeline({ max_id: Lists.last(st).id }),
+      (res, st) => Lists.pushAll(st, res.data),
+      st => Lists.removeFrom(st, this.options.buffer)
+    )
   }
 
   showStatus(status: Status) {
@@ -146,7 +143,7 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
 
 
 <style lang="sass">
-@import '../../common.sass'
+@import '@/common.sass'
 
 .mastodon
   .client
@@ -154,10 +151,9 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     height: 100%
     overflow-y: auto
     .header
-      @include tile
+      @include main-tile
     .list
-      & > div
-        @include tile
+      @include group-tile
     .statues
       flex: 1
     .notifications
@@ -169,7 +165,7 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
         color: $foreColor
       .avatar
         float: left
-        border-radius: $borderRadius
+        @include rounded
         width: $avatarSize
         height: $avatarSize
         background-size: $avatarSize $avatarSize

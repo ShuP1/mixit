@@ -1,5 +1,5 @@
 <template lang="pug">
-.weather(:class="{ selected }" @click.stop.prevent="$emit('select')")
+.weather(@click.stop.prevent="$emit('select')")
   .main(v-for="main in city.weather")
     p {{ main.description }}
     .ic
@@ -38,14 +38,11 @@ export default class Weather extends Vue {
   @Prop(Object)
   readonly city!: IWeather
 
-  @Prop(Boolean)
-  readonly selected!: boolean
-
 }
 </script>
 
 <style lang="sass">
-@import '../../common.sass'
+@import '@/common.sass'
 
 .weather
   min-width: 17em
@@ -54,8 +51,6 @@ export default class Weather extends Vue {
   grid-template-columns: auto auto
   grid-template-rows: 1.2em auto
   grid-template-areas: "header main" "data remove"
-  &.selected
-    border-color: $halfColor
   .header
     grid-area: header
     font-size: 1.2em

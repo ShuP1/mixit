@@ -22,11 +22,11 @@
 import axios, { AxiosResponse } from 'axios'
 import { Component, Mixins } from 'vue-property-decorator'
 
-import AccountService from '../../components/service/AccountService';
-import ServiceHeaderVue from '../../components/ServiceHeader.vue'
-import { Auth } from '../../types/App'
+import AccountService from '@/components/service/AccountService';
+import ServiceHeaderVue from '@/components/ServiceHeader.vue'
+import { Auth } from '@/types/App'
 import ClientVue from './Client.vue'
-import { Account, Options } from './Types'
+import { Options, User } from './Types'
 
 export const AUTH = { TOKEN: 'token' }
 export const CDN = 'https://cdn.discordapp.com'
@@ -43,7 +43,7 @@ export function getRest(auth: Auth, timeout: number) {
     'service-header': ServiceHeaderVue
   }
 })
-export default class Discord extends Mixins<AccountService<string, object, Account>>(AccountService) { // TODO: Use oauth
+export default class Discord extends Mixins<AccountService<string, object, User>>(AccountService) { // TODO: Use oauth
 
   get params(): Options {
     return { timeout: 5000, reconnect: false, buffer: 20, showMedia: true, ...this.options }
@@ -61,7 +61,7 @@ export default class Discord extends Mixins<AccountService<string, object, Accou
     return getRest(auth, this.params.timeout).get('/users/@me')
   }
 
-  mapAccount(res: AxiosResponse<Account>) {
+  mapAccount(res: AxiosResponse<User>) {
     return res.data.username
   }
 }
