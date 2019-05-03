@@ -1,18 +1,13 @@
 import { Component, Prop, Watch } from 'vue-property-decorator'
 
 import { Auth } from '@/types/App'
-import SettingBooleanVue from '../input/SettingBoolean.vue'
-import SettingIntVue from '../input/SettingInt.vue'
-import SettingStringVue from '../input/SettingString.vue'
+import SettingBoolean from '../input/SettingBoolean.vue'
+import SettingInt from '../input/SettingInt.vue'
+import SettingString from '../input/SettingString.vue'
 import ServiceEmiter from '../ServiceEmiter'
+import ServiceHeader from '../ServiceHeader.vue'
 
-@Component({
-  components: {
-    'setting-string': SettingStringVue,
-    'setting-int': SettingIntVue,
-    'setting-boolean': SettingBooleanVue
-  }
-})
+@Component({ components: { ServiceHeader, SettingString, SettingInt, SettingBoolean } })
 export default class BaseService extends ServiceEmiter {
 
   @Prop({

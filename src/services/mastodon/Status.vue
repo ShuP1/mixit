@@ -4,8 +4,7 @@
 
   span.text-icon.letter(v-if="status.reblog") ⟳
 
-  a.date(target="_blank" :href="status.uri")
-    from-now(:date="status.created_at" :now="now")
+  a.date(target="_blank" :href="status.uri") {{ fromNow(status.created_at) }}
 
   .content(:class="{ avatared: showMedia }")
     template(v-if="!status.reblog")
@@ -19,7 +18,7 @@
             template(v-else) Wrong type
             .gif(v-if="media.type == 'gifv'") GIF
           template(v-else) Hidden media
-    status.reblog(v-else :status="status.reblog" :now="now" :showMedia="showMedia")
+    status.reblog(v-else :status="status.reblog" :showMedia="showMedia")
 
   .meta(v-if="!status.reblog")
     a.replies(@click.stop.prevent="makeReply(status)")
@@ -38,20 +37,14 @@
 <script lang="ts">
 import { Component, Emit, Mixins, Prop } from 'vue-property-decorator'
 
+import FromNowMixin from '@/components/FromNowMixin'
 import ShowMediaMixin from '@/components/ShowMediaMixin'
-import FromNowVue from '@/components/time/FromNow.vue'
-import TimedMixin from '@/components/time/TimedMixin'
-import AccountVue from './Account.vue'
+import Account from './Account.vue'
 import { ParseEmojisMixin } from './ParseEmojisMixin'
 import { MarkMessage, Status as IStatus } from './Types'
 
-@Component({
-  components: {
-    account: AccountVue,
-    fromNow: FromNowVue
-  }
-})
-export default class Status extends Mixins(TimedMixin, ParseEmojisMixin, ShowMediaMixin) {
+@Component({ components: { Account } })
+export default class Status extends Mixins(ParseEmojisMixin, ShowMediaMixin, FromNowMixin) {
 
   @Prop(Object)
   readonly status!: IStatus

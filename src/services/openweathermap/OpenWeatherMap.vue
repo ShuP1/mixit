@@ -13,9 +13,8 @@
         weather(v-for="(city, id) in weathers.get().data" :key="id" :class="{ selected: weathers.get().isSelected(id) }"
           :city="city" @select="makeSelect(id)" @remove="removeCity(id)")
         input.weather(v-show="showAdd" placeholder="city id" @keyup.enter="addCity(parseInt($event.target.value))")
-      loadable-block.forecast(:loadable="forecast")
-        template(#success)
-          chart.chart(:chartData="forecastChart")
+      success-loadable.forecast(:loadable="forecast")
+        chart.chart(:chartData="forecastChart")
     template(#error)
       form(@submit.prevent="makeAuth")
         p
@@ -30,13 +29,12 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import { Component } from 'vue-property-decorator'
 
 import ConnectedService from '@/components/service/ConnectedService'
-import ServiceHeaderVue from '@/components/ServiceHeader.vue'
 import Lists from '@/helpers/lists/Lists'
 import { Selectable } from '@/helpers/lists/Selectable'
 import AxiosLoadable from '@/helpers/loadable/AxiosLoadable'
 import { Auth } from '@/types/App'
 import Chart from './Chart'
-import WeatherVue, { IWeather } from './Weather.vue'
+import Weather, { IWeather } from './Weather.vue'
 
 interface Forecast {
   dt: number
@@ -50,13 +48,7 @@ interface Forecast {
 
 const AUTH = { TOKEN: 'token' }
 
-@Component({
-  components: {
-    'service-header': ServiceHeaderVue,
-    weather: WeatherVue,
-    chart: Chart
-  }
-})
+@Component({ components: { Weather, Chart } })
 export default class OpenWeatherMap extends ConnectedService<object, object> {
 
   rest!: AxiosInstance // NOTE: set in this.init()

@@ -2,18 +2,17 @@
 .client(@scroll.passive="onScroll")
   .statues
     .header(v-if="hasNotifications") Accueil
-    loadable-block.list(:loadable="statues")
-      template(#success)
-        template(v-for="status in statues.get()")
-          status(v-if="showStatus(status)" :key="status.id" :status="status" :now="now" :showMedia="options.showMedia" @mark="onStatusMark")
-        .status(v-show="statues.loadingMore")
-          .service-loader
+    success-loadable.list(:loadable="statues")
+      template(v-for="status in statues.get()")
+        status(v-if="showStatus(status)" :key="status.id" :status="status" :showMedia="options.showMedia" @mark="onStatusMark")
+      .status(v-show="statues.loadingMore")
+        .service-loader
   .notifications(v-if="hasNotifications")
     .header
       | Notifications
       span.date(@click.stop.prevent="onNotificationsClear") ❌
     .list
-      notification(v-for="notification in notifications.get()" :key="notification.id" :notification="notification" :now="now"
+      notification(v-for="notification in notifications.get()" :key="notification.id" :notification="notification"
         :showMedia="options.showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark")
 </template>
 
@@ -21,30 +20,22 @@
 import axios, { AxiosResponse } from 'axios'
 import { Component, Mixins } from 'vue-property-decorator'
 
-import LoadableBlockVue from '@/components/loadable/LoadableBlock.vue'
 import ServiceClient from '@/components/ServiceClient'
-import TimerMixin from '@/components/time/TimerMixin'
 import Lists from '@/helpers/lists/Lists'
 import AxiosLodable from '@/helpers/loadable/AxiosLoadable'
 import AxiosLodableMore from '@/helpers/loadable/AxiosLoadableMore'
 import { AUTH, getRest } from './Mastodon.vue'
-import NotificationVue from './Notification.vue'
-import StatusVue from './Status.vue'
-import { MarkMessage, Notification, Options, Status } from './Types'
+import Notification from './Notification.vue'
+import Status from './Status.vue'
+import { MarkMessage, Notification as INotification, Options, Status as IStatus } from './Types'
 
-@Component({
-  components: {
-    status: StatusVue,
-    notification: NotificationVue,
-    loadableBlock: LoadableBlockVue
-  }
-})
-export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient, TimerMixin) {
+@Component({ components: { Status, Notification } })
+export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient) {
 
   rest = getRest(this.auth, this.options.timeout)
 
-  statues = new AxiosLodableMore<Status[], object>()
-  notifications = new AxiosLodable<Notification[], object>()
+  statues = new AxiosLodableMore<IStatus[], object>()
+  notifications = new AxiosLodable<INotification[], object>()
 
   get hasNotifications() {
     if(!this.notifications.isSuccess) {
@@ -85,7 +76,7 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     )
   }
 
-  showStatus(status: Status) {
+  showStatus(status: IStatus) {
     return (!status.in_reply_to_id || this.options.reply) && (!status.reblog || this.options.reblog)
   }
 

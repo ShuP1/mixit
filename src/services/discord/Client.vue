@@ -1,52 +1,39 @@
 <template lang="pug">
 .client(@scroll.passive="onScroll")
-  loadable-block.guilds(:loadable="guilds")
-    template(#success)
-      guild(v-for="(guild, key) in guilds.get().data" :key="guild.id" :guild="guild" :showMedia="options.showMedia"
-        @click.native="selectGuild(key)" :class="{ selected: guilds.get().isSelected(key) }")
-  loadable-block.channels(:loadable="channels")
-    template(#success)
-      channel(v-for="(channel, key) in mapChannels" :key="channel.id" :channel="channel" :showMedia="options.showMedia"
-        @click.native="selectChannel(key)" :class="{ selected: channels.get().isSelected(key) }")
-  loadable-block.messages(:loadable="messages")
-    template(#success)
-      message(v-for="(message, key) in messages.get()" :key="message.id"
-        :message="message" :showMedia="options.showMedia" :now="now")
-
+  success-loadable.guilds(:loadable="guilds")
+    guild(v-for="(guild, key) in guilds.map(g => g.data, [])" :key="guild.id" :guild="guild" :showMedia="options.showMedia"
+      @click.native="selectGuild(key)" :class="{ selected: guilds.get().isSelected(key) }")
+  success-loadable.channels(:loadable="channels")
+    channel(v-for="(channel, key) in mapChannels" :key="channel.id" :channel="channel" :showMedia="options.showMedia"
+      @click.native="selectChannel(key)" :class="{ selected: channels.get().isSelected(key) }")
+  success-loadable.messages(:loadable="messages")
+    message(v-for="(message, key) in messages.get()" :key="message.id"
+      :message="message" :showMedia="options.showMedia")
 </template>
 
 <script lang="ts">
 import axios, { AxiosResponse } from 'axios'
 import { Component, Mixins } from 'vue-property-decorator'
 
-import LoadableBlockVue from '@/components/loadable/LoadableBlock.vue'
 import ServiceClient from '@/components/ServiceClient'
-import TimerMixin from '@/components/time/TimerMixin'
 import Lists from '@/helpers/lists/Lists'
 import { Selectable } from '@/helpers/lists/Selectable'
 import AxiosLoadable from '@/helpers/loadable/AxiosLoadable'
 import AxiosLoadableMore from '@/helpers/loadable/AxiosLoadableMore'
-import ChannelTagVue from './ChannelTag.vue'
+import Channel from './Channel.vue'
 import { AUTH, getRest } from './Discord.vue'
-import GuildTagVue from './GuildTag.vue'
-import MessageTagVue from './MessageTag.vue'
-import { Channel, getChannelOrder, MappedChannel, Message, Options, PartialGuild, TextChannelTypes } from './Types'
+import Guild from './Guild.vue'
+import Message from './Message.vue'
+import { Channel as IChannel, getChannelOrder, MappedChannel, Message as IMessage, Options, PartialGuild, TextChannelTypes } from './Types'
 
-@Component({
-  components: {
-    channel: ChannelTagVue,
-    guild: GuildTagVue,
-    message: MessageTagVue,
-    loadableBlock: LoadableBlockVue
-  }
-})
-export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient, TimerMixin) {
+@Component({ components: { Channel, Guild, Message } })
+export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient) {
 
   rest = getRest(this.auth, this.options.timeout)
 
   guilds = new AxiosLoadable<Selectable<PartialGuild>, object>()
-  channels = new AxiosLoadable<Selectable<Channel>, object>()
-  messages = new AxiosLoadableMore<Message[], object>()
+  channels = new AxiosLoadable<Selectable<IChannel>, object>()
+  messages = new AxiosLoadableMore<IMessage[], object>()
 
   get mapChannels() {
     return this.channels.map(cs => cs.data

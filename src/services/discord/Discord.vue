@@ -22,10 +22,9 @@
 import axios, { AxiosResponse } from 'axios'
 import { Component, Mixins } from 'vue-property-decorator'
 
-import AccountService from '@/components/service/AccountService';
-import ServiceHeaderVue from '@/components/ServiceHeader.vue'
+import AccountService from '@/components/service/AccountService'
 import { Auth } from '@/types/App'
-import ClientVue from './Client.vue'
+import Client from './Client.vue'
 import { Options, User } from './Types'
 
 export const AUTH = { TOKEN: 'token' }
@@ -37,12 +36,7 @@ export function getRest(auth: Auth, timeout: number) {
   })
 }
 
-@Component({
-  components: {
-    client: ClientVue,
-    'service-header': ServiceHeaderVue
-  }
-})
+@Component({ components: { Client } })
 export default class Discord extends Mixins<AccountService<string, object, User>>(AccountService) { // TODO: Use oauth
 
   get params(): Options {

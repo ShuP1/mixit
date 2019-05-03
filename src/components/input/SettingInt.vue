@@ -8,10 +8,10 @@ block input
 <script lang="ts">
 import { Component, Prop } from 'vue-property-decorator'
 
-import BaseSettingVue from './BaseSetting'
+import BaseSetting from './BaseSetting'
 
 @Component
-export default class SettingInt extends BaseSettingVue {
+export default class SettingInt extends BaseSetting {
 
   @Prop({
     type: Number,

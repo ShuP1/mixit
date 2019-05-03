@@ -14,7 +14,7 @@ import { PartialGuild } from './Types'
 const MAX_LENGTH = 20
 
 @Component
-export default class GuildTag extends ShowMediaMixin {
+export default class Guild extends ShowMediaMixin {
 
   @Prop(Object)
   readonly guild!: PartialGuild

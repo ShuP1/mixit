@@ -11,7 +11,7 @@ import { MappedChannel } from './Types'
 const MAX_LENGTH = 20
 
 @Component
-export default class ChannelTag extends ShowMediaMixin {
+export default class Channel extends ShowMediaMixin {
 
   @Prop(Object)
   readonly channel!: MappedChannel

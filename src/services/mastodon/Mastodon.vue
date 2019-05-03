@@ -32,9 +32,8 @@ import axios, { AxiosResponse } from 'axios'
 import { Component, Mixins } from 'vue-property-decorator'
 
 import AccountService from '@/components/service/AccountService'
-import ServiceHeaderVue from '@/components/ServiceHeader.vue'
 import { Auth } from '@/types/App'
-import ClientVue from './Client.vue'
+import Client from './Client.vue'
 import { ParseEmojisMixin } from './ParseEmojisMixin'
 import { Account, Options } from './Types'
 
@@ -46,12 +45,7 @@ export function getRest(auth: Auth, timeout: number) {
   })
 }
 
-@Component({
-  components: {
-    client: ClientVue,
-    'service-header': ServiceHeaderVue
-  }
-})
+@Component({ components: { Client } })
 export default class Mastodon extends Mixins<AccountService<Account, object>>(AccountService, ParseEmojisMixin) { // TODO: Use oauth
 
   get server() {

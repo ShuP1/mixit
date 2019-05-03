@@ -1,7 +1,7 @@
 <template lang="pug">
 .message
   span.account {{ message.author.username }}
-  from-now.date.osef(:date="message.timestamp" :now="now")
+  span.date.osef {{ fromNow(message.timestamp) }}
   .content(v-html="content")
   a.embed(v-if="message.embeds" v-for="embed in message.embeds" :href="embed.url") {{ embed.title }}
   .react(v-if="message.reactions" v-for="react in message.reactions" :class="{ colored: react.me }")
@@ -12,22 +12,17 @@
 <script lang="ts">
 import { Component, Mixins, Prop } from 'vue-property-decorator'
 
+import FromNowMixin from '@/components/FromNowMixin'
 import ShowMediaMixin from '@/components/ShowMediaMixin'
-import fromNow from '@/components/time/FromNow.vue'
-import TimedMixin from '@/components/time/TimedMixin'
-import { Message } from './Types'
+import { Message as IMessage } from './Types'
 
 const MAX_LENGTH = 20
 
-@Component({
-  components:{
-    fromNow
-  }
-})
-export default class MessageTag extends Mixins(ShowMediaMixin, TimedMixin) {
+@Component
+export default class Message extends Mixins(ShowMediaMixin, FromNowMixin) {
 
   @Prop(Object)
-  readonly message!: Message
+  readonly message!: IMessage
 
   get content() {
     let text = this.message.content.split('\n').join('<br />')

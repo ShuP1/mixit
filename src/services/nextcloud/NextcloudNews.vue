@@ -12,7 +12,7 @@
     template(#success)
       .news(v-for="line in news.get()")
         a(:href="line.url" target="_blank")
-          from-now.date(:date="line.pubDate * 1000" :now="now")
+          span.date {{ fromNow(line.pubDate * 1000) }}
         span.read(@click.stop="makeRead(line.id)") &#128065;
         span.title(@click.stop="line.open = !line.open") {{ line.author }} ─ {{ line.title }}
         .content(v-if="line.open && line.body") {{ line.body }}
@@ -35,10 +35,8 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import { Component, Mixins } from 'vue-property-decorator'
 
+import FromNowMixin from '@/components/FromNowMixin'
 import ConnectedService from '@/components/service/ConnectedService'
-import ServiceHeaderVue from '@/components/ServiceHeader.vue'
-import FromNowVue from '@/components/time/FromNow.vue'
-import TimerMixin from '@/components/time/TimerMixin'
 import Lists from '@/helpers/lists/Lists'
 import AxiosLoadable from '@/helpers/loadable/AxiosLoadable'
 import { Auth } from '@/types/App'
@@ -55,13 +53,8 @@ interface News {
 
 const AUTH = { SERVER: 'server', USERNAME: 'username', TOKEN: 'token' }
 
-@Component({
-  components: {
-    'service-header': ServiceHeaderVue,
-    fromNow: FromNowVue
-  }
-})
-export default class NextcloudNews extends Mixins<ConnectedService<object, object>>(ConnectedService, TimerMixin) { // TODO: handle unread
+@Component
+export default class NextcloudNews extends Mixins<ConnectedService<object, object>>(ConnectedService, FromNowMixin) { // TODO: handle unread
 
   rest!: AxiosInstance // NOTE: set in this.init()
   news = new AxiosLoadable<News[], object>()

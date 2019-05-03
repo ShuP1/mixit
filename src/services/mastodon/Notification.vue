@@ -6,11 +6,11 @@
   span.colored.text-icon.letter(v-if="notification.type == 'reblog'") ⟳
   span.colored.text-icon.letter(v-if="notification.type == 'favourite'") ⚝
 
-  from-now.date(:date="notification.created_at" :now="now")
+  span.date {{ fromNow(notification.created_at) }}
 
   .content
     template(v-if="notification.type == 'follow'") Vous suit
-    status.reblog(v-else-if="notification.status" :status="notification.status" :now="now"
+    status.reblog(v-else-if="notification.status" :status="notification.status"
       :showMedia="showMedia" :withAccount="notification.type != 'mention'" @mark="passMark")
 
   a.date(@click.stop.prevent="makeDismiss" style="margin-top: -1em") ❌
@@ -19,21 +19,14 @@
 <script lang="ts">
 import { Component, Emit, Mixins, Prop } from 'vue-property-decorator'
 
+import FromNowMixin from '@/components/FromNowMixin'
 import ShowMediaMixin from '@/components/ShowMediaMixin'
-import FromNowVue from '@/components/time/FromNow.vue'
-import TimedMixin from '@/components/time/TimedMixin'
-import AccountVue from './Account.vue'
-import StatusVue from './Status.vue'
+import Account from './Account.vue'
+import Status from './Status.vue'
 import { MarkMessage, Notification as INotification } from './Types'
 
-@Component({
-  components: {
-    fromNow: FromNowVue,
-    account: AccountVue,
-    status: StatusVue
-  }
-})
-export default class Notification extends Mixins(TimedMixin, ShowMediaMixin) {
+@Component({ components: { Account, Status } })
+export default class Notification extends Mixins(ShowMediaMixin, FromNowMixin) {
 
   @Prop(Object)
   readonly notification!: INotification

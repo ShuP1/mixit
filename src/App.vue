@@ -32,10 +32,10 @@
 import { Component, Vue } from 'vue-property-decorator'
 import { Selectable } from './helpers/lists/Selectable'
 import LocalStorageHandler from './helpers/storage/LocalStorageHandler'
-import DiscordVue from './services/discord/Discord.vue'
-import MastodonVue from './services/mastodon/Mastodon.vue'
-import NextcloudNewsVue from './services/nextcloud/NextcloudNews.vue'
-import OpenWeatherMapVue from './services/openweathermap/OpenWeatherMap.vue'
+import Discord from './services/discord/Discord.vue'
+import Mastodon from './services/mastodon/Mastodon.vue'
+import NextcloudNews from './services/nextcloud/NextcloudNews.vue'
+import OpenWeatherMap from './services/openweathermap/OpenWeatherMap.vue'
 import { Auth, Layout, Rect, Service, serviceKey, tileKey } from './types/App'
 import * as Events from './types/Events'
 
@@ -50,14 +50,7 @@ function saveAuth(auth: Auth) {
   return res
 }
 
-@Component({
-  components: {
-    mastodon: MastodonVue,
-    'nextcloud-news': NextcloudNewsVue,
-    openweathermap: OpenWeatherMapVue,
-    discord: DiscordVue
-  }
-})
+@Component({ components: { Mastodon, NextcloudNews, openweathermap: OpenWeatherMap, Discord } })
 export default class App extends Vue {
   showManager = false
 

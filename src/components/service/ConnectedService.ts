@@ -3,16 +3,9 @@ import { Component } from 'vue-property-decorator'
 
 import ErrorLoadable from '@/helpers/loadable/ErrorLoadable'
 import { Auth } from '@/types/App'
-import LoadableBlockVue from '../loadable/LoadableBlock.vue'
-import LoadableInlineVue from '../loadable/LoadableInline.vue'
 import BaseService from './BaseService'
 
-@Component({
-  components: {
-    'loadable-inline': LoadableInlineVue,
-    'loadable-block': LoadableBlockVue
-  }
-})
+@Component
 export default class ConnectedService<T, E> extends BaseService {
 
   get isSetup(): boolean {

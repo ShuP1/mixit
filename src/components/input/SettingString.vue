@@ -8,10 +8,10 @@ block input
 <script lang="ts">
 import { Component, Prop } from 'vue-property-decorator'
 
-import BaseSettingVue from './BaseSetting'
+import BaseSetting from './BaseSetting'
 
 @Component
-export default class SettingString extends BaseSettingVue {
+export default class SettingString extends BaseSetting {
 
   @Prop(String)
   readonly value!: string

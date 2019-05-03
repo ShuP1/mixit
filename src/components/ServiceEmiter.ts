@@ -1,10 +1,14 @@
 import { AxiosPromise } from 'axios'
 import { Component, Prop, Vue } from 'vue-property-decorator'
 
+import LoadableBlock from './loadable/LoadableBlock.vue'
+import LoadableInline from './loadable/LoadableInline.vue'
+import SuccessLoadable from './loadable/SuccessLoadableBlock.vue'
+
 import { ServiceData } from '@/types/App'
 import * as Events from '@/types/Events'
 
-@Component({})
+@Component({ components: { LoadableBlock, LoadableInline, SuccessLoadable } })
 export default class ServiceEmiter extends Vue {
   @Prop(Function)
   readonly emit!: (name: string, msg: any) => void
