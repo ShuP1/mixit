@@ -83,7 +83,7 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
   }
 
   get(path: string, options = {}) {
-    return this.catchEmit(this.rest.get(path, { params: { limit: this.options.buffer, ...options } }))
+    return this.catchError(this.rest.get(path, { params: { limit: this.options.buffer, ...options } }))
   }
 
   getMessages(channel: string, options = {}) {

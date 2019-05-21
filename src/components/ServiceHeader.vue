@@ -16,24 +16,25 @@
 <script lang="ts">
 import { Component, Mixins } from 'vue-property-decorator'
 
-import * as Events from '../types/Events'
 import ServiceEmiter from './ServiceEmiter'
+import { MoveType, MoveDirection } from '@/types/App';
+import { LayoutsModule, ServicesModule } from '../store';
 
 @Component
 export default class ServiceHeader extends Mixins(ServiceEmiter) {
 
   showSettings = false
 
-  onMove(type: Events.MoveType, direction: Events.MoveDirection) {
-    this.emit(Events.MoveTileEvent, { type, direction })
+  onMove(type: MoveType, direction: MoveDirection) {
+    LayoutsModule.moveTile(this.tileKey, type, direction)
   }
 
   onRemove() {
-    this.emit(Events.RemoveTileEvent, {})
+    LayoutsModule.removeTile(this.tileKey)
   }
 
   onRemoveService() {
-    this.emit(Events.RemoveServiceEvent, {})
+    ServicesModule.remove(LayoutsModule.getTile(this.tileKey).service)
   }
 
 }

@@ -57,11 +57,11 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
   }
 
   get(path: string, options = {}) {
-    return this.catchEmit(this.rest.get(path, { params: { limit: this.options.buffer, ...options } }))
+    return this.catchError(this.rest.get(path, { params: { limit: this.options.buffer, ...options } }))
   }
 
   post(path: string, options = {}) {
-    return this.catchEmit(this.rest.post(path, options))
+    return this.catchError(this.rest.post(path, options))
   }
 
   getTimeline(options = {}) {
@@ -118,9 +118,9 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
           break
       }
     }
-    ws.onerror = ev => this.emitError(ev.type)
+    ws.onerror = ev => this.addError(ev.type)
     ws.onclose = () => {
-      this.emitError(
+      this.addError(
         'Mastodon stream disconnected !' +
           (this.options.reconnect ? ' Reconnecting...' : '')
       )

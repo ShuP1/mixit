@@ -94,7 +94,7 @@ export default class NextcloudNews extends Mixins<ConnectedService<object, objec
 
   loadData() {
     this.news.load<{ items: News[] }>(
-      this.catchEmit(this.rest.get<News[]>('/items', { params: { batchSize: this.params.buffer, type: 3, getRead: false } })),
+      this.catchError(this.rest.get<News[]>('/items', { params: { batchSize: this.params.buffer, type: 3, getRead: false } })),
       res => res.data.items.map(n => {
         n.open = false
         return n
@@ -107,7 +107,7 @@ export default class NextcloudNews extends Mixins<ConnectedService<object, objec
   }
 
   makeRead(id: number) {
-    this.catchEmit(this.rest.put(`/items/${id}/read`))
+    this.catchError(this.rest.put(`/items/${id}/read`))
       .then(() => this.removeNews(id))
   }
 

@@ -31,75 +31,35 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import { Selectable } from './helpers/lists/Selectable'
-import LocalStorageHandler from './helpers/storage/LocalStorageHandler'
 import Discord from './services/discord/Discord.vue'
 import Mastodon from './services/mastodon/Mastodon.vue'
 import NextcloudNews from './services/nextcloud/NextcloudNews.vue'
 import OpenWeatherMap from './services/openweathermap/OpenWeatherMap.vue'
+import { ErrorsModule, ServicesModule, LayoutsModule } from './store'
 import { Auth, Layout, Rect, Service, serviceKey, tileKey } from './types/App'
-import * as Events from './types/Events'
-
-const layoutsStorage = 'layouts'
-const servicesStorage = 'services'
-
-function saveAuth(auth: Auth) {
-  const res: any = {}
-  for (const entry of auth.entries()) {
-    res[entry[0]] = entry[1]
-  }
-  return res
-}
 
 @Component({ components: { Mastodon, NextcloudNews, openweathermap: OpenWeatherMap, Discord } })
 export default class App extends Vue {
   showManager = false
 
-  layouts = new LocalStorageHandler(layoutsStorage,
-    new Selectable<Layout>([{ name: 'main', tiles: [] }]),
-    data => new Selectable<Layout>(data), l => l.data)
-
-  services = new LocalStorageHandler<Service[]>(servicesStorage, [],
-    (data: any[]) => data.map(s => ({ ...s, auth: new Auth(Object.entries(s.auth)) })),
-    data => data.map(s => ({ ...s, auth: saveAuth(s.auth) })))
   newService = ''
-
-  errors: string[] = []
-  bus = new Vue()
 
   get managerButton() {
     return this.showManager ? '▼' : '▲'
   }
 
   get tiles() {
-    const layout = this.layouts.get().selected
-    if(layout) {
-      return layout.tiles.map((tile, key: tileKey) => {
-        const service = this.loadService(key, tile.service)
-        if(service) {
-          return {
-            ...tile, service, serviceId: tile.service,
-            grid: this.gridPos(tile.position), emiter: this.makeEmiter(key)
-          }
+    return LayoutsModule.tiles.map((tile, key: tileKey) => {
+      const service = ServicesModule.get(tile.service)
+      if(service) {
+        return {
+          ...tile, service, serviceId: tile.service,
+          grid: this.gridPos(tile.position)
         }
-      })
-    } else {
-      return []
-    }
-  }
-
-  mounted() {
-    this.layouts.load()
-    this.services.load()
-
-    new Map<string, (event: Events.Message) => void>([
-      [ Events.ErrorEvent, this.onError ],
-      [ Events.SaveOptionsEvent, this.onSaveOptions ],
-      [ Events.SaveOptionEvent, this.onSaveOption ],
-      [ Events.MoveTileEvent, this.onMoveTile ],
-      [ Events.RemoveTileEvent, this.onRemoveTile ],
-      [ Events.SaveServiceEvent, this.onSaveService ],
-      [ Events.RemoveServiceEvent, this.onRemoveService ]
-    ]).forEach((handler, name) => this.bus.$on(name, handler))
+      } else {
+        LayoutsModule.removeTile(key)
+      }
+    })
   }
 
   // UI
@@ -107,117 +67,44 @@ export default class App extends Vue {
     this.showManager = !this.showManager
   }
   selectLayout(id: number) {
-    this.layouts.get().select(id)
+    LayoutsModule.select(id)
   }
 
   // Layouts
   addLayout() {
-    this.layouts.edit(l => {
-      l.data.push({ name: 'layout' + l.data.length, tiles: [] })
-      return l
-    })
+    LayoutsModule.add({ name: 'new layout', tiles: [] })
   }
   renameSelectedLayout(name: string) {
-    this.layouts.edit(data => {
-      if(data.selected) {
-        data.selected.name = name
-      }
-      return data
-    })
+    LayoutsModule.setName(name)
   }
   removeSelectedLayout() {
-    this.layouts.edit(data => data.remove())
+    LayoutsModule.remove()
   }
 
   // Tiles
   showService(id: serviceKey) {
-    this.layouts.edit(data => {
-      if(data.selected) {
-        data.selected.tiles.push({
-          service: id, position: {}, options: {}
-        })
-      }
-      return data
-    })
-  }
-  onSaveOption({ key, msg }: Events.SaveOptionMessage) {
-    this.layouts.edit(data => {
-      if(data.selected) {
-        this.$set(data.selected.tiles[key].options, msg.key, msg.value)
-      }
-      return data
-    })
-  }
-  onSaveOptions({ key, msg }: Events.SaveOptionsMessage) {
-    this.layouts.edit(data => {
-      if(data.selected) {
-        let options = data.selected.tiles[key].options
-        options = Object.assign({}, options, msg)
-      }
-      return data
-    })
-  }
-  onMoveTile({ key, msg }: Events.MoveTileMessage) {
-    this.layouts.edit(data => {
-      if(data.selected){
-        const position = data.selected.tiles[key].position
-        this.$set(position, msg.type, Math.max(1,
-          (position[msg.type] || 1) + msg.direction
-        ))
-      }
-      return data
-    })
-  }
-  onRemoveTile({ key }: Events.RemoveTileMessage) {
-    this.layouts.edit(data => {
-      if(data.selected) {
-        data.selected.tiles.splice(key, 1)
-      }
-      return data
+    LayoutsModule.addTile({
+      service: id, position: {}, options: {}
     })
   }
 
   // Services
-  getServiceId(key: number) {
-    const tile = this.tiles[key]
-    if(tile) {
-      return tile.serviceId
-    } else {
-      throw new Error('tile not found')
-    }
-  }
   addService() {
     if (this.newService) {
-      this.services.edit(data => {
-        data.push({ type: this.newService, name: this.newService, auth: new Auth() })
-        return data
+      const id = ServicesModule.add({
+        type: this.newService, name: this.newService, auth: new Auth()
       })
-      this.showService(this.services.get().length - 1)
+      this.showService(id)
       this.newService = ''
     }
   }
-  onSaveService({ key, msg }: Events.SaveServiceMessage) {
-    const service = this.loadService(key, this.getServiceId(key))
-    if(service){
-      service.name = msg.name
-      service.auth = msg.auth
-      this.services.save()
-    }
-  }
-  onRemoveService({ key }: Events.RemoveServiceMessage) {
-    this.services.edit(data => {
-      data.splice(this.getServiceId(key), 1)
-      return data
-    })
-    this.onRemoveTile({ key, msg: undefined })
-  }
 
   // Errors
-  onError({ msg }: Events.ErrorMessage) {
-      this.errors.push(msg.toString())
+  get errors() {
+    return ErrorsModule.errors
   }
   removeError(id: number) {
-    this.errors.splice(id, 1)
+    ErrorsModule.remove(id)
   }
 
   // Helpers
@@ -225,21 +112,6 @@ export default class App extends Vue {
     return {
       'grid-row': `${position.x || 1} / span ${position.h || 2}`,
       'grid-column': `${position.y || 1} / span ${position.w || 2}`
-    }
-  }
-  private makeEmiter(key: tileKey) {
-    const bus = this.bus
-    return (name: string, msg: any) => {
-      bus.$emit(name, { key, msg })
-    }
-  }
-  private loadService(key: tileKey, id: serviceKey) {
-    const ser = this.services.get()[id]
-    if (ser){
-      return ser
-    } else {
-      this.onRemoveTile({ key, msg: undefined })
-      this.errors.push('Removing missing service')
     }
   }
 

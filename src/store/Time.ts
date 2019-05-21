@@ -9,14 +9,14 @@ export default class Time extends VuexModule implements TimeState {
   now = new Date
 
   @Mutation
-  updateTime() {
+  update() {
     this.now = new Date
   }
 
   @Action
   start() {
     setInterval(() => {
-      this.updateTime()
+      this.update()
     }, 15 * 1000)
   }
 

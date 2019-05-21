@@ -1,4 +1,5 @@
 import Loadable from './Loadable'
+import { unsafeMapper } from '../unsafeMapper';
 
 export default class ErrorLoadable<T, E> extends Loadable<T> {
 

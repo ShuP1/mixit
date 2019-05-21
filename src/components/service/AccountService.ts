@@ -2,7 +2,7 @@ import { AxiosPromise, AxiosResponse } from 'axios'
 import { Component } from 'vue-property-decorator'
 
 import AxiosLoadable from '@/helpers/loadable/AxiosLoadable'
-import { unsafeAxiosMapper } from '@/helpers/unsafeAxiosMapper'
+import { unsafeAxiosMapper } from '@/helpers/unsafeMapper'
 import { Auth } from '@/types/App'
 import ConnectedService from './ConnectedService'
 
@@ -16,7 +16,7 @@ export default class AccountService<T, E, U = T> extends ConnectedService<T, E> 
   }
 
   load() {
-    this.account.load(this.catchEmit(this.getAccount(this.auth)), this.mapAccount)
+    this.account.load(this.catchError(this.getAccount(this.auth)), this.mapAccount)
   }
   mapAccount(res: AxiosResponse<U>) {
     return unsafeAxiosMapper<T, U>(res)

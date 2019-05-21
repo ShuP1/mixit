@@ -1,5 +1,5 @@
 import { AxiosPromise, AxiosResponse } from 'axios'
-import { unsafeAxiosMapper } from '../unsafeAxiosMapper'
+import { unsafeAxiosMapper } from '../unsafeMapper'
 import ErrorLoadable from './ErrorLoadable'
 
 export default class AxiosLoadable<T, E> extends ErrorLoadable<T, E> {

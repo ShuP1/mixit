@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import axios, { AxiosInstance, AxiosResponse } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { Component } from 'vue-property-decorator'
 
 import ConnectedService from '@/components/service/ConnectedService'
@@ -129,17 +129,21 @@ export default class OpenWeatherMap extends ConnectedService<object, object> {
     this.loadForecast()
   }
 
+  get(path: string, params: AxiosRequestConfig) {
+    return this.catchError(this.rest.get(path, params))
+  }
+
   getWeather(params: { id: number }) {
-    return this.catchEmit(this.rest.get('weather', { params }))
+    return this.get('weather', { params })
   }
 
   loadForecast() {
     const selected = this.weathers.map(w => w.selected, undefined)
     if(selected) {
       this.forecast.load<{ list: Forecast[] }>(
-        this.catchEmit(this.rest.get('forecast', { params: {
+        this.get('forecast', { params: {
           id: selected.id, cnt: this.params.forecastLimit
-        }})),
+        }}),
         res => res.data.list
       )
     } else {

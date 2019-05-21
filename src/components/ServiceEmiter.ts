@@ -5,37 +5,37 @@ import LoadableBlock from './loadable/LoadableBlock.vue'
 import LoadableInline from './loadable/LoadableInline.vue'
 import SuccessLoadable from './loadable/SuccessLoadableBlock.vue'
 
-import { ServiceData } from '@/types/App'
-import * as Events from '@/types/Events'
+import { ErrorsModule, LayoutsModule, ServicesModule } from '@/store'
+import { Options, ServiceData } from '@/types/App'
 
 @Component({ components: { LoadableBlock, LoadableInline, SuccessLoadable } })
 export default class ServiceEmiter extends Vue {
-  @Prop(Function)
-  readonly emit!: (name: string, msg: any) => void
+  @Prop(Number)
+  readonly tileKey!: number
 
-  emitError(err: string) {
-    this.emit(Events.ErrorEvent, err)
+  addError(error: any) {
+    ErrorsModule.add(error.toString())
   }
 
-  saveOptions(options: object) {
-    this.emit(Events.SaveOptionsEvent, options)
+  saveOptions(options: Options) {
+    LayoutsModule.setTileOptions(this.tileKey, options)
   }
 
   saveOption(key: string, value: any) {
-    this.saveOptionCouple({ key, value })
+    LayoutsModule.setTileOption(this.tileKey, key, value)
   }
 
-  saveOptionCouple(couple: Events.Option) {
-    this.emit(Events.SaveOptionEvent, couple)
+  saveOptionCouple({ key, value }: { key: string, value: any }) {
+    this.saveOption(key, value)
   }
 
-  saveService(service: ServiceData) {
-    this.emit(Events.SaveServiceEvent, service)
+  saveService({ name, auth }: ServiceData) {
+    ServicesModule.set(LayoutsModule.getTile(this.tileKey).service, name, auth)
   }
 
-  catchEmit(req: AxiosPromise) {
+  catchError(req: AxiosPromise) {
     return req.catch(err => {
-      this.emitError(err)
+      this.addError(err)
       throw err
     })
   }

@@ -30,7 +30,7 @@ export default class ConnectedService<T, E> extends BaseService {
 
   makeAuth() {
     const auth = new Auth(Object.entries(this.newAuth))
-    this.catchEmit(this.checkAuth(auth)).then(res =>
+    this.catchError(this.checkAuth(auth)).then(res =>
       this.saveService({ name: this.mapServiceName(res, auth), auth }))
   }
 

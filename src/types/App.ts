@@ -15,13 +15,16 @@ export interface Layout {
   tiles: Tile[]
 }
 
+export type MoveType = 'x' | 'y' | 'h' | 'w'
+export type MoveDirection = 1 | -1
 export interface Rect {
   x?: number, y?: number
   h?: number, w?: number
 }
 
+export interface Options { [index: string]: { option: any } }
 export interface Tile {
   service: serviceKey
   position: Rect
-  options: object
+  options: Options
 }
