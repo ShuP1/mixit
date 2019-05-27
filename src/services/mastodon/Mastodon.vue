@@ -12,6 +12,7 @@
       setting-boolean(:id="'reply'" :title="'Show replies'" :value="params.reply" @change="saveOptionCouple")
       setting-int(:id="'buffer'" :title="'Buffer size'" :value="params.buffer" @change="saveOptionCouple")
       setting-boolean(:id="'showMedia'" :title="'Show medias'" :value="params.showMedia" @change="saveOptionCouple")
+      setting-select(:id="'timeline'" :title="'Timeline'" :value="params.timeline" @change="saveOptionCouple" :options="['home', 'local', 'public']")
   loadable-block.service-content(:loadable="account")
     template(#success)
       client(:auth="auth" :options="params" :emit="emit")
@@ -57,7 +58,7 @@ export default class Mastodon extends Mixins<AccountService<Account, object>>(Ac
 
   get params(): Options {
     return { timeout: 5000, reconnect: false, buffer: 20, reblog: true, reply: false,
-      showMedia: true, ...this.options }
+      showMedia: true, timeline: 'home', ...this.options }
   }
 
   get isSetup() {

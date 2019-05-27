@@ -9,6 +9,8 @@ export interface Account {
   emojis: Emoji[]
 }
 
+export type TimelineType = 'home' | 'local' | 'public'
+
 export interface Options {
   timeout: number
   reconnect: boolean
@@ -16,6 +18,7 @@ export interface Options {
   reblog: boolean
   reply: boolean
   showMedia: boolean
+  timeline: TimelineType
 }
 
 export type VisibilityType = 'public' | 'unlisted' | 'private' | 'direct'
@@ -45,9 +48,9 @@ export interface Status {
   replies_count: number
   in_reply_to_id?: number
   reblog?: Status
-  spoiler_text?: string,
-  card?: Card,
-  poll?: Poll,
+  spoiler_text?: string
+  card?: Card
+  poll?: Poll
   visibility: VisibilityType
 }
 

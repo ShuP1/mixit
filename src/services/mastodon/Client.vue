@@ -27,7 +27,7 @@
         select(v-model="compose.visibility")
           option(value="public") ◍
           option(value="unlisted") 👁
-          option(selected value="private") ⚿
+          option(value="private") ⚿
           option(value="direct") ✉
         span.note {{ compose.visibility }}
       button(@click="sendStatus") Toot
@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import axios, { AxiosResponse } from 'axios'
-import { Component, Mixins } from 'vue-property-decorator'
+import { Component, Mixins, Prop } from 'vue-property-decorator'
 
 import ServiceClient from '@/components/ServiceClient'
 import Lists from '@/helpers/lists/Lists'
@@ -44,20 +44,33 @@ import AxiosLodableMore from '@/helpers/loadable/AxiosLoadableMore'
 import { AUTH, getHeaders, getRest } from './Mastodon.vue'
 import Notification from './Notification.vue'
 import Status from './Status.vue'
-import { MarkMessage, Notification as INotification, Options, Status as IStatus, StatusPost } from './Types'
+import { MarkMessage, Notification as INotification, Options, Status as IStatus, StatusPost, TimelineType } from './Types'
+
+const STREAMS = {
+  home: 'user',
+  local: 'public:local',
+  public: 'public'
+}
 
 @Component({ components: { Status, Notification } })
 export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient) {
+
+  /*
+    home: timelines/home
+    local: timelines/public?local=true
+    public: timelines/public?...
+  */
 
   rest = getRest(this.auth, this.options.timeout)
 
   statues = new AxiosLodableMore<IStatus[], object>()
   notifications = new AxiosLodable<INotification[], object>()
+  stream?: WebSocket = undefined
 
   showCompose = false
   compose: StatusPost = {
     status: '',
-    visibility: 'private',
+    visibility: 'unlisted',
     sensitive: false,
     spoiler_text: ''
   }
@@ -76,8 +89,12 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
   }
 
   created() {
-    this.statues.load(this.getTimeline())
+    this.$watch('options.timeline', this.init, { immediate: true })
     this.notifications.load(this.get('/notifications'))
+  }
+
+  init() {
+    this.statues.load(this.getTimeline())
     this.setupStream()
   }
 
@@ -106,8 +123,11 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     }
   }
 
-  getTimeline(options = {}) {
-    return this.get('/timelines/home', options)
+  getTimeline(options: any = {}) {
+    if (this.options.timeline === 'local') {
+      options.local = true
+    }
+    return this.get(`/timelines/${this.options.timeline === 'home' ? 'home' : 'public'}`, options)
   }
 
   onScroll(event: any) {
@@ -140,13 +160,16 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
   }
 
   setupStream() {
+    if(this.stream) {
+      this.stream.close()
+    }
     this.get('/instance').then(res => {
       const oldAuth = res.data.version < '2.8.4' ? `access_token=${this.auth.get(AUTH.TOKEN)}&` : ''
-      const ws = new WebSocket(
-        `wss://${this.auth.get(AUTH.SERVER)}/api/v1/streaming?${oldAuth}stream=user`,
+      this.stream = new WebSocket(
+        `wss://${this.auth.get(AUTH.SERVER)}/api/v1/streaming?${oldAuth}stream=${STREAMS[this.options.timeline]}`,
         this.auth.get(AUTH.TOKEN)
       )
-      ws.onmessage = event => {
+      this.stream.onmessage = event => {
         const data = JSON.parse(event.data)
         const payload = JSON.parse(data.payload)
         switch (data.event) {
@@ -163,8 +186,8 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
             break
         }
       }
-      ws.onerror = ev => this.emitError(ev.type)
-      ws.onclose = () => {
+      this.stream.onerror = ev => this.emitError(ev.type)
+      this.stream.onclose = () => {
         this.emitError(
           'Mastodon stream disconnected !' +
             (this.options.reconnect ? ' Reconnecting...' : '')
