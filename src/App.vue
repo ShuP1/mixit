@@ -263,7 +263,7 @@ a, .osef
   text-decoration: none
   color: $noneColor
 
-input, select, button
+input, select, button, textarea
   background-color: $backColor
   color: $foreColor
   border: 1px solid $halfColor

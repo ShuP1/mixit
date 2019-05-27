@@ -1,6 +1,6 @@
 <template lang="pug">
-.client(@scroll.passive="onScroll")
-  .statues
+.client
+  .statues(@scroll.passive="onScroll")
     .header(v-if="hasNotifications") Accueil
     success-loadable.list(:loadable="statues")
       template(v-for="status in statues.get()")
@@ -14,6 +14,23 @@
     .list
       notification(v-for="notification in notifications.get()" :key="notification.id" :notification="notification"
         :showMedia="options.showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark")
+  .compose-toggle(@click="showCompose = !showCompose") 🖉
+  .compose(v-show="showCompose")
+    textarea.content(v-model="compose.status" placeholder="message")
+    .options
+      .sens
+        label.note(for="sensitive") Sensitive:&nbsp;
+        input(id="sensitive" v-model="compose.sensitive" type="checkbox")
+      .cw
+        input(v-show="compose.sensitive" v-model="compose.spoiler_text" placeholder="content warning")
+      .visibility
+        select(v-model="compose.visibility")
+          option(value="public") ◍
+          option(value="unlisted") 👁
+          option(selected value="private") ⚿
+          option(value="direct") ✉
+        span.note {{ compose.visibility }}
+      button(@click="sendStatus") Toot
 </template>
 
 <script lang="ts">
@@ -27,7 +44,7 @@ import AxiosLodableMore from '@/helpers/loadable/AxiosLoadableMore'
 import { AUTH, getHeaders, getRest } from './Mastodon.vue'
 import Notification from './Notification.vue'
 import Status from './Status.vue'
-import { MarkMessage, Notification as INotification, Options, Status as IStatus } from './Types'
+import { MarkMessage, Notification as INotification, Options, Status as IStatus, StatusPost } from './Types'
 
 @Component({ components: { Status, Notification } })
 export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient) {
@@ -36,6 +53,14 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
 
   statues = new AxiosLodableMore<IStatus[], object>()
   notifications = new AxiosLodable<INotification[], object>()
+
+  showCompose = false
+  compose: StatusPost = {
+    status: '',
+    visibility: 'private',
+    sensitive: false,
+    spoiler_text: ''
+  }
 
   get hasNotifications() {
     if(!this.notifications.isSuccess) {
@@ -62,6 +87,23 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
 
   post(path: string, options = {}) {
     return this.catchEmit(this.rest.post(path, options))
+  }
+
+  sendStatus() {
+    if(this.compose.status) {
+      const post: StatusPost = {
+        status: this.compose.status,
+        visibility: this.compose.visibility
+      }
+      if(this.compose.sensitive) {
+        post.sensitive = true
+        if(this.compose.spoiler_text) {
+          post.spoiler_text = this.compose.spoiler_text
+        }
+      }
+      this.post('/statuses', post)
+      this.compose.status = ''
+    }
   }
 
   getTimeline(options = {}) {
@@ -143,16 +185,38 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
 .mastodon
   .client
     display: flex
+    flex-direction: column
     height: 100%
-    overflow-y: auto
+    overflow: hidden
+    position: relative
     .header
       @include main-tile
     .list
       @include group-tile
     .statues
       flex: 1
+      overflow-y: auto
     .notifications
       max-width: 33%
+    .compose-toggle
+      position: absolute
+      bottom: .5em
+      right: 1.5em
+      background-color: $backColor
+      border: 1px solid $darkColor
+      border-radius: 100%
+      height: 2em
+      width: 2em
+      text-align: center
+      line-height: 2em
+    .compose
+      @include main-tile
+      display: flex
+      min-height: 5em
+      textarea
+        flex: 1
+      .options
+        margin-right: 1em
 
     .account
       .name

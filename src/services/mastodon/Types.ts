@@ -18,6 +18,17 @@ export interface Options {
   showMedia: boolean
 }
 
+export type VisibilityType = 'public' | 'unlisted' | 'private' | 'direct'
+
+export interface StatusPost {
+  status: string
+  in_reply_to_id?: number
+  media_ids?: number[] // TODO:
+  sensitive?: boolean
+  spoiler_text?: string
+  visibility: VisibilityType
+}
+
 export interface Status {
   id: number
   uri: string
@@ -36,7 +47,8 @@ export interface Status {
   reblog?: Status
   spoiler_text?: string,
   card?: Card,
-  poll?: Poll
+  poll?: Poll,
+  visibility: VisibilityType
 }
 
 export type CardType = 'link' | 'photo' | 'video' | 'rich'

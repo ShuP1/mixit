@@ -38,6 +38,11 @@
     a.favourites(:class="{ colored: status.favourited }" @click.stop.prevent="makeFav(status)")
       span.text-icon ⚝
       | {{ status.favourites_count }}
+    a.visibility
+      template(v-if="status.visibility == 'public'") ◍
+      template(v-else-if="status.visibility == 'unlisted'") 👁
+      template(v-else-if="status.visibility == 'private'") ⚿
+      template(v-else-if="status.visibility == 'direct'") ✉
     a.fil(v-if="status.in_reply_to_id" @click.stop.prevent="showReply(status.in_reply_to_id)")
       | Voir le fil
 </template>
