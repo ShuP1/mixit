@@ -34,7 +34,36 @@ export interface Status {
   replies_count: number
   in_reply_to_id?: number
   reblog?: Status
-  spoiler_text?: string
+  spoiler_text?: string,
+  card?: Card,
+  poll?: Poll
+}
+
+export type CardType = 'link' | 'photo' | 'video' | 'rich'
+export interface Card {
+  url: string
+  title: string
+  description: string
+  image?: string
+  type: CardType
+  author_name?: string
+  author_url?: string
+  provider_name?: string
+  provider_url?: string
+}
+
+export interface PollOption {
+  title: string
+  votes_count?: number
+}
+export interface Poll {
+  id: string
+  expires_at?: string
+  expired: boolean
+  multiple: boolean
+  votes_count: number
+  options: PollOption[]
+  voted?: boolean
 }
 
 export interface Media {

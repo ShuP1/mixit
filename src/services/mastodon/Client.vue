@@ -24,7 +24,7 @@ import ServiceClient from '@/components/ServiceClient'
 import Lists from '@/helpers/lists/Lists'
 import AxiosLodable from '@/helpers/loadable/AxiosLoadable'
 import AxiosLodableMore from '@/helpers/loadable/AxiosLoadableMore'
-import { AUTH, getRest } from './Mastodon.vue'
+import { AUTH, getHeaders, getRest } from './Mastodon.vue'
 import Notification from './Notification.vue'
 import Status from './Status.vue'
 import { MarkMessage, Notification as INotification, Options, Status as IStatus } from './Types'
@@ -98,36 +98,40 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
   }
 
   setupStream() {
-    const ws = new WebSocket(
-      `wss://${this.auth.get(AUTH.SERVER)}/api/v1/streaming?access_token=${this.auth.get(AUTH.TOKEN)}&stream=user`
-    )
-    ws.onmessage = event => {
-      const data = JSON.parse(event.data)
-      const payload = JSON.parse(data.payload)
-      switch (data.event) {
-        case 'update':
-          this.statues.with(s => s.unshift(payload))
-          break
-
-        case 'notification':
-          this.notifications.with(n => n.unshift(payload))
-          break
-
-        case 'delete':
-          this.statues.with(st => Lists.removeFirstBy(st, s => s.id, payload.id))
-          break
-      }
-    }
-    ws.onerror = ev => this.emitError(ev.type)
-    ws.onclose = () => {
-      this.emitError(
-        'Mastodon stream disconnected !' +
-          (this.options.reconnect ? ' Reconnecting...' : '')
+    this.get('/instance').then(res => {
+      const oldAuth = res.data.version < '2.8.4' ? `access_token=${this.auth.get(AUTH.TOKEN)}&` : ''
+      const ws = new WebSocket(
+        `wss://${this.auth.get(AUTH.SERVER)}/api/v1/streaming?${oldAuth}stream=user`,
+        this.auth.get(AUTH.TOKEN)
       )
-      if (this.options.reconnect) {
-        setTimeout(() => this.setupStream(), this.options.timeout)
+      ws.onmessage = event => {
+        const data = JSON.parse(event.data)
+        const payload = JSON.parse(data.payload)
+        switch (data.event) {
+          case 'update':
+            this.statues.with(s => s.unshift(payload))
+            break
+
+          case 'notification':
+            this.notifications.with(n => n.unshift(payload))
+            break
+
+          case 'delete':
+            this.statues.with(st => Lists.removeFirstBy(st, s => s.id, payload.id))
+            break
+        }
       }
-    }
+      ws.onerror = ev => this.emitError(ev.type)
+      ws.onclose = () => {
+        this.emitError(
+          'Mastodon stream disconnected !' +
+            (this.options.reconnect ? ' Reconnecting...' : '')
+        )
+        if (this.options.reconnect) {
+          setTimeout(() => this.setupStream(), this.options.timeout)
+        }
+      }
+    })
   }
 }
 </script>
@@ -191,6 +195,12 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
             background-color: #00000044
             color: white
             padding: .5em
+        .card
+          @include tile
+          padding: .2em
+          display: block
+          .provider
+            float: right
       .meta
         margin-left: 1em + $avatarSize
         font-size: .8em

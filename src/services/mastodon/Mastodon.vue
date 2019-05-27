@@ -38,10 +38,13 @@ import { ParseEmojisMixin } from './ParseEmojisMixin'
 import { Account, Options } from './Types'
 
 export const AUTH = { SERVER: 'server', TOKEN: 'token' }
+export function getHeaders(auth: Auth) {
+  return { headers: { Authorization: 'Bearer ' + auth.get(AUTH.TOKEN) } }
+}
 export function getRest(auth: Auth, timeout: number) {
   return axios.create({
     baseURL: `https://${auth.get(AUTH.SERVER)}/api/v1/`, timeout,
-    headers: { Authorization: 'Bearer ' + auth.get(AUTH.TOKEN) },
+    ...getHeaders(auth)
   })
 }
 

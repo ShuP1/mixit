@@ -17,7 +17,15 @@
             img(v-if="media.type == 'image' || media.type == 'gifv'" :src="media.preview_url" :alt="media.description" :title="media.description")
             template(v-else) Wrong type
             .gif(v-if="media.type == 'gifv'") GIF
-          template(v-else) Hidden media
+          template(v-else) Hidden media {{ media.description }}
+        .poll(v-if="status.poll") {{ renderPoll(status.poll) }}
+        a.card(v-if="status.card" :href="status.card.url" target="_blank")
+          a.provider(v-if="status.card.provider_name" :src="status.card.provider_url" target="_blank") {{ status.card.provider_name }}
+          .title {{ status.card.title }}
+          .descr {{ status.card.description }}
+          template(v-if="status.card.image")
+            img(v-if="showMedia" :src="status.card.image")
+            a(v-else-if="status.card.type == 'photo'" :src="status.card.image" target="_blank") Hidden media
     status.reblog(v-else :status="status.reblog" :showMedia="showMedia")
 
   .meta(v-if="!status.reblog")
@@ -41,7 +49,7 @@ import FromNowMixin from '@/components/FromNowMixin'
 import ShowMediaMixin from '@/components/ShowMediaMixin'
 import Account from './Account.vue'
 import { ParseEmojisMixin } from './ParseEmojisMixin'
-import { MarkMessage, Status as IStatus } from './Types'
+import { Card, MarkMessage, Poll, Status as IStatus } from './Types'
 
 @Component({ components: { Account } })
 export default class Status extends Mixins(ParseEmojisMixin, ShowMediaMixin, FromNowMixin) {
@@ -58,6 +66,10 @@ export default class Status extends Mixins(ParseEmojisMixin, ShowMediaMixin, Fro
 
   makeReply(status: IStatus) {
     throw status.id // TODO:
+  }
+
+  renderPoll(poll: Poll) {
+    throw poll // TODO:
   }
 
   @Emit('mark')
