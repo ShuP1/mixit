@@ -5,7 +5,7 @@
       | {{ serviceName }}: 
       loadable-inline(:loadable="account")
         template(#success)
-          span(v-html="parseEmojis(account.data.display_name, account.data.emojis) + '@' + server", params.showMedia)
+          span(v-html="parseEmojis(account.data.display_name, account.data.emojis, params.showMedia) + '@' + server", params.showMedia)
     template(#settings)
       setting-boolean(:id="'reconnect'" :title="'Reconnect'" :value="params.reconnect" @change="saveOptionCouple")
       setting-boolean(:id="'reblog'" :title="'Show reblogs'" :value="params.reblog" @change="saveOptionCouple")

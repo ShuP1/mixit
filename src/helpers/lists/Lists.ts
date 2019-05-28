@@ -43,4 +43,12 @@ export default abstract class Lists {
     }
   }
 
+  static sort<T, U>(list: T[], mapper: (val: T) => U, comparer: (a: U, b: U) => number) {
+    return list.sort((a, b) => comparer(mapper(a), mapper(b)))
+  }
+
+  static stringCompare(a: string, b: string) {
+    return ('' + a).localeCompare(b)
+  }
+
 }

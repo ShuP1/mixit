@@ -15,9 +15,15 @@
       notification(v-for="notification in notifications.get()" :key="notification.id" :notification="notification"
         :showMedia="options.showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark")
   .compose-toggle(@click="showCompose = !showCompose") 🖉
+  .emoji-list(v-show="showCompose && showEmojis")
+    img.emoji(v-for="emoji in emojis.get()" @click="addEmoji(emoji.shortcode)" :src="emoji.static_url" :alt="emoji.shortcode" :title="emoji.shortcode")
   .compose(v-show="showCompose")
     textarea.content(v-model="compose.status" placeholder="message")
     .options
+      .emojis
+        button(v-if="options.showMedia" @click="showEmojis = !showEmojis") ☺
+        select(v-else @change="addEmoji($event.target.value)")
+          option(v-for="emoji in emojis.get()" :value="emoji.shortcode") {{ emoji.shortcode }}
       .sens
         label.note(for="sensitive") Sensitive:&nbsp;
         input(id="sensitive" v-model="compose.sensitive" type="checkbox")
@@ -44,7 +50,7 @@ import AxiosLodableMore from '@/helpers/loadable/AxiosLoadableMore'
 import { AUTH, getHeaders, getRest } from './Mastodon.vue'
 import Notification from './Notification.vue'
 import Status from './Status.vue'
-import { MarkMessage, Notification as INotification, Options, Status as IStatus, StatusPost, TimelineType } from './Types'
+import { Emoji, MarkMessage, Notification as INotification, Options, Status as IStatus, StatusPost, TimelineType } from './Types'
 
 const STREAMS = {
   home: 'user',
@@ -55,16 +61,11 @@ const STREAMS = {
 @Component({ components: { Status, Notification } })
 export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient) {
 
-  /*
-    home: timelines/home
-    local: timelines/public?local=true
-    public: timelines/public?...
-  */
-
   rest = getRest(this.auth, this.options.timeout)
 
   statues = new AxiosLodableMore<IStatus[], object>()
   notifications = new AxiosLodable<INotification[], object>()
+  emojis = new AxiosLodable<Emoji[], object>()
   stream?: WebSocket = undefined
 
   showCompose = false
@@ -74,6 +75,7 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     sensitive: false,
     spoiler_text: ''
   }
+  showEmojis = false // MAYBE: show tabs with unicode emoticons
 
   get hasNotifications() {
     if(!this.notifications.isSuccess) {
@@ -91,6 +93,7 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
   created() {
     this.$watch('options.timeline', this.init, { immediate: true })
     this.notifications.load(this.get('/notifications'))
+    this.emojis.load<Emoji[]>(this.get('/custom_emojis'), res => Lists.sort(res.data, e => e.shortcode, Lists.stringCompare))
   }
 
   init() {
@@ -104,6 +107,10 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
 
   post(path: string, options = {}) {
     return this.catchEmit(this.rest.post(path, options))
+  }
+
+  addEmoji(code: string) {
+    this.compose.status += `:${code}:`
   }
 
   sendStatus() {
@@ -212,15 +219,13 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     height: 100%
     overflow: hidden
     position: relative
-    .header
+    .header, .emoji-list
       @include main-tile
     .list
       @include group-tile
-    .statues
+    .statues, .notifications, .emoji-list
       flex: 1
       overflow-y: auto
-    .notifications
-      max-width: 33%
     .compose-toggle
       position: absolute
       bottom: .5em
@@ -232,6 +237,10 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
       width: 2em
       text-align: center
       line-height: 2em
+    .emoji-list
+      img
+        width: 2em
+        height: 2em
     .compose
       @include main-tile
       display: flex
