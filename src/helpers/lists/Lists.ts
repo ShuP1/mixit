@@ -1,3 +1,5 @@
+import Vue from 'vue'
+
 export default abstract class Lists {
 
   static last<T>(list: T[]) {
@@ -11,6 +13,18 @@ export default abstract class Lists {
       }
     }
     return list.length
+  }
+
+  static setAt<T>(list: T[], id: number, val: T) {
+    return Vue.set(list, id, val)
+  }
+
+  static setFirst<T>(list: T[], where: (val: T) => boolean, val: T) {
+    return this.setAt(list, this.getIndex(list, where), val)
+  }
+
+  static setFirstBy<T, U>(list: T[], mapper: (val: T) => U, key: U, val: T) {
+    return this.setFirst(list, e => mapper(e) === key, val)
   }
 
   static removeAt<T>(list: T[], id: number) {

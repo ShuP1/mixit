@@ -81,6 +81,12 @@ export interface Poll {
   voted?: boolean
 }
 
+export interface PollVote {
+  id: number
+  poll: string
+  choices: string[]
+}
+
 export interface Media {
   description: string
   url: string
@@ -96,8 +102,8 @@ export interface Notification {
   status?: Status
 }
 
-export interface MarkMessage {
+export type MarkStatusType = 'reblog' | 'unreblog' | 'favourite' | 'unfavourite'
+export interface MarkStatus {
   id: number,
-  type: string,
-  callback: CallableFunction
+  type: MarkStatusType
 }

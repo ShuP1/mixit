@@ -12,13 +12,23 @@
         {{ status.spoiler_text || 'Spoiler' }} {{ status.sensitive ? '&rarr;' : '&darr;' }}
       div(v-if="!status.spoiler_text || !status.sensitive")
         .text(v-html="parseEmojis(status.content, status.emojis, showMedia)")
+        .poll(v-if="status.poll")
+          .date {{ fromNow(status.poll.expires_at) }}
+          form.options(@submit.prevent="makeVote(status, $event.target.elements)")
+            .option(v-for="option in status.poll.options")
+              input(v-if="!status.poll.expired && !status.poll.voted" :type="status.poll.multiple ? 'checkbox' : 'radio'" :id="status.poll.id + option.title" :value="option.title" :name="status.poll.id")
+              label(:for="status.poll.id + option.title")
+                | {{ option.title }}
+                span.note {{ option.votes_count }}
+            button(v-if="status.poll.voted") voted
+            button(v-else-if="status.poll.expired") expired
+            input(v-else type="submit" value="vote")
         a.media(v-for="media in status.media_attachments" :href="media.url" target="_blank")
           template(v-if="showMedia")
             img(v-if="media.type == 'image' || media.type == 'gifv'" :src="media.preview_url" :alt="media.description" :title="media.description")
             template(v-else) Wrong type
             .gif(v-if="media.type == 'gifv'") GIF
           template(v-else) Hidden media {{ media.description }}
-        .poll(v-if="status.poll") {{ renderPoll(status.poll) }}
         a.card(v-if="status.card" :href="status.card.url" target="_blank")
           a.provider(v-if="status.card.provider_name" :src="status.card.provider_url" target="_blank") {{ status.card.provider_name }}
           .title {{ status.card.title }}
@@ -26,7 +36,7 @@
           template(v-if="status.card.image")
             img(v-if="showMedia" :src="status.card.image")
             a(v-else-if="status.card.type == 'photo'" :src="status.card.image" target="_blank") Hidden media
-    status.reblog(v-else :status="status.reblog" :showMedia="showMedia")
+    status.reblog(v-else :status="status.reblog" :showMedia="showMedia" @mark="passMark" @vote="passVote")
 
   .meta(v-if="!status.reblog")
     a.replies(@click.stop.prevent="makeReply(status)")
@@ -54,7 +64,7 @@ import FromNowMixin from '@/components/FromNowMixin'
 import ShowMediaMixin from '@/components/ShowMediaMixin'
 import Account from './Account.vue'
 import { ParseEmojisMixin } from './ParseEmojisMixin'
-import { Card, MarkMessage, Poll, Status as IStatus } from './Types'
+import { Card, MarkStatus, MarkStatusType, Poll, PollVote, Status as IStatus } from './Types'
 
 @Component({ components: { Account } })
 export default class Status extends Mixins(ParseEmojisMixin, ShowMediaMixin, FromNowMixin) {
@@ -73,31 +83,43 @@ export default class Status extends Mixins(ParseEmojisMixin, ShowMediaMixin, Fro
     throw status.id // TODO:
   }
 
-  renderPoll(poll: Poll) {
-    throw poll // TODO:
+  @Emit('mark')
+  emitMark(id: number, action: 'reblog' | 'favourite', undo = false): MarkStatus {
+    return {
+      id, type: (undo ? 'un' : '') + action as MarkStatusType
+    }
+  }
+
+  @Emit('vote')
+  emitVote(id: number, poll: string, choices: string[]): PollVote {
+    return {
+      id, poll, choices
+    }
   }
 
   @Emit('mark')
-  emitMark(status: IStatus, action: 'reblog' | 'favourite', callback: CallableFunction, undo = false): MarkMessage {
-    return {
-      id: status.id,
-      type: (undo ? 'un' : '') + action,
-      callback
+  passMark(action: MarkStatus) {
+    return action
+  }
+
+  @Emit('vote')
+  passVote(action: PollVote) {
+    return action
+  }
+
+  makeVote(status: IStatus, elements: HTMLInputElement[]) {
+    const choices = Object.values(elements).filter(e => e.checked).map(e => e.value)
+    if(choices.length > 0) {
+      this.emitVote(status.id, status.poll!.id, choices)
     }
   }
 
   makeReblog(status: IStatus) {
-    this.emitMark(status, 'reblog', () => {
-      status.reblogs_count += (status.reblogged ? -1 : 1)
-      status.reblogged = !status.reblogged
-    }, status.reblogged)
+    this.emitMark(status.id, 'reblog', status.reblogged)
   }
 
   makeFav(status: IStatus) {
-    this.emitMark(status, 'favourite', () => {
-      status.favourites_count += (status.favourited ? -1 : 1)
-      status.favourited = !status.favourited
-    }, status.favourited)
+    this.emitMark(status.id, 'favourite', status.favourited)
   }
 
 }

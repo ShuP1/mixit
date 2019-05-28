@@ -33,7 +33,7 @@ export default class ServiceEmiter extends Vue {
     this.emit(Events.SaveServiceEvent, service)
   }
 
-  catchEmit(req: AxiosPromise) {
+  catchEmit<T>(req: AxiosPromise<T>) {
     return req.catch(err => {
       this.emitError(err)
       throw err

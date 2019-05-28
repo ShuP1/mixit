@@ -19,7 +19,11 @@ export default class FromNowMixin extends Vue {
   }
 
   fromNow(date: Date | number | string) {
-    const milliseconds = Math.floor(FromNowMixin.toNumber(TimeModule.now) - FromNowMixin.toNumber(date))
+    const now = FromNowMixin.toNumber(TimeModule.now)
+    const target = FromNowMixin.toNumber(date)
+
+    const prefix = target > now ? 'in ' : ''
+    const milliseconds = Math.floor(Math.abs(target - now))
 
     let cur = 0
     let divider = 1
@@ -28,10 +32,11 @@ export default class FromNowMixin extends Vue {
       divider *= time[1]
       const next = Math.floor(milliseconds / divider)
       if(next <= 0) {
-        return `${cur} ${name}${cur > 1 ? 's' : ''}`
+        return `${prefix}${cur} ${name}${cur > 1 ? 's' : ''}`
       }
       name = time[0]
       cur = next
     }
+    return `${prefix}a long time`
   }
 }

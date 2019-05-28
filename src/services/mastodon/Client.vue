@@ -4,7 +4,7 @@
     .header(v-if="hasNotifications") Accueil
     success-loadable.list(:loadable="statues")
       template(v-for="status in statues.get()")
-        status(v-if="showStatus(status)" :key="status.id" :status="status" :showMedia="options.showMedia" @mark="onStatusMark")
+        status(v-if="showStatus(status)" :key="status.id" :status="status" :showMedia="options.showMedia" @mark="onStatusMark" @vote="onPollVote")
       .status(v-show="statues.loadingMore")
         .service-loader
   .notifications(v-if="hasNotifications")
@@ -13,9 +13,9 @@
       span.date(@click.stop.prevent="onNotificationsClear") ❌
     .list
       notification(v-for="notification in notifications.get()" :key="notification.id" :notification="notification"
-        :showMedia="options.showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark")
+        :showMedia="options.showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark" @vote="onPollVote")
   .compose-toggle(@click="showCompose = !showCompose") 🖉
-  .emoji-list(v-show="showCompose && showEmojis")
+  .emoji-list(v-if="options.showMedia" v-show="showCompose && showEmojis")
     img.emoji(v-for="emoji in emojis.get()" @click="addEmoji(emoji.shortcode)" :src="emoji.static_url" :alt="emoji.shortcode" :title="emoji.shortcode")
   .compose(v-show="showCompose")
     textarea.content(v-model="compose.status" placeholder="message")
@@ -50,7 +50,7 @@ import AxiosLodableMore from '@/helpers/loadable/AxiosLoadableMore'
 import { AUTH, getHeaders, getRest } from './Mastodon.vue'
 import Notification from './Notification.vue'
 import Status from './Status.vue'
-import { Emoji, MarkMessage, Notification as INotification, Options, Status as IStatus, StatusPost, TimelineType } from './Types'
+import { Emoji, MarkStatus, Notification as INotification, Options, Poll, PollVote, Status as IStatus, StatusPost, TimelineType } from './Types'
 
 const STREAMS = {
   home: 'user',
@@ -92,8 +92,8 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
 
   created() {
     this.$watch('options.timeline', this.init, { immediate: true })
-    this.notifications.load(this.get('/notifications'))
-    this.emojis.load<Emoji[]>(this.get('/custom_emojis'), res => Lists.sort(res.data, e => e.shortcode, Lists.stringCompare))
+    this.notifications.load(this.get<INotification[]>('/notifications'))
+    this.emojis.load(this.get<Emoji[]>('/custom_emojis'), res => Lists.sort(res.data, e => e.shortcode, Lists.stringCompare))
   }
 
   init() {
@@ -101,12 +101,12 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     this.setupStream()
   }
 
-  get(path: string, options = {}) {
-    return this.catchEmit(this.rest.get(path, { params: { limit: this.options.buffer, ...options } }))
+  get<T>(path: string, options = {}) {
+    return this.catchEmit(this.rest.get<T>(path, { params: { limit: this.options.buffer, ...options } }))
   }
 
-  post(path: string, options = {}) {
-    return this.catchEmit(this.rest.post(path, options))
+  post<T>(path: string, options = {}) {
+    return this.catchEmit(this.rest.post<T>(path, options))
   }
 
   addEmoji(code: string) {
@@ -134,7 +134,7 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     if (this.options.timeline === 'local') {
       options.local = true
     }
-    return this.get(`/timelines/${this.options.timeline === 'home' ? 'home' : 'public'}`, options)
+    return this.get<IStatus[]>(`/timelines/${this.options.timeline === 'home' ? 'home' : 'public'}`, options)
   }
 
   onScroll(event: any) {
@@ -149,9 +149,18 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     return (!status.in_reply_to_id || this.options.reply) && (!status.reblog || this.options.reblog)
   }
 
-  onStatusMark(action: MarkMessage) {
-    this.post(`/statuses/${action.id}/${action.type}`)
-      .then(() => action.callback())
+  onStatusMark(action: MarkStatus) {
+    this.post<IStatus>(`/statuses/${action.id}/${action.type}`)
+      .then(res => this.statues.with(
+        sts => Lists.setFirstBy(sts, st => st.id, action.id, res.data)
+      ))
+  }
+
+  onPollVote(action: PollVote) {
+    this.post<Poll>(`/polls/${action.poll}/votes`, { choices: action.choices })
+      .then(res => this.statues.with(
+        sts => sts.find(st => st.id == action.id)!.poll = res.data
+      ))
   }
 
   onNotificationDismiss(id: number) {
@@ -170,7 +179,7 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     if(this.stream) {
       this.stream.close()
     }
-    this.get('/instance').then(res => {
+    this.get<{ version: string }>('/instance').then(res => {
       const oldAuth = res.data.version < '2.8.4' ? `access_token=${this.auth.get(AUTH.TOKEN)}&` : ''
       this.stream = new WebSocket(
         `wss://${this.auth.get(AUTH.SERVER)}/api/v1/streaming?${oldAuth}stream=${STREAMS[this.options.timeline]}`,
@@ -291,7 +300,7 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
             background-color: #00000044
             color: white
             padding: .5em
-        .card
+        .card, .poll
           @include tile
           padding: .2em
           display: block
