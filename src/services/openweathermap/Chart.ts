@@ -53,10 +53,11 @@ export default {
       },
       tooltips: {
         intersect: false,
+        mode: 'index',
         callbacks: {
-          title(tooltipItem: any, myData: any) {
-            const item = myData.datasets[tooltipItem[0].datasetIndex].data[tooltipItem[0].index]
-            return moment(item.x || item.t).format('HH[h]')
+          title(tooltipItems: any, myData: any) {
+            const item = myData.datasets[tooltipItems[0].datasetIndex].data[tooltipItems[0].index]
+            return moment(item.x || item.t).format('HH[h]') + (item.d ? ` - ${item.d}` : '')
           },
           label(tooltipItem: any, myData: any) {
             let label = myData.datasets[tooltipItem.datasetIndex].label || ''

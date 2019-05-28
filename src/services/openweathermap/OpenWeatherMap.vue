@@ -44,6 +44,9 @@ interface Forecast {
   rain?: {
     '3h': number
   }
+  weather: Array<{
+    description: string
+  }>,
 }
 
 const AUTH = { TOKEN: 'token' }
@@ -83,9 +86,9 @@ export default class OpenWeatherMap extends ConnectedService<object, object> {
         borderWidth: 1,
         fill: false,
         data: fs.map(line => ({
-          x: line.dt * 1000, y: line.main.temp
+          x: line.dt * 1000, y: line.main.temp, d: line.weather[0].description
         }))
-      },{
+      }, {
         type: 'bar',
         label: 'Percipitation',
         yAxisID: 'y-axis-rain',
