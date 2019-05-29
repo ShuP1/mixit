@@ -340,6 +340,7 @@ input, select, button, textarea
           float: right
           width: 1.2em
       .service-content
+        flex-grow: 1
         overflow: hidden
   .service-loader
     display: inline-block

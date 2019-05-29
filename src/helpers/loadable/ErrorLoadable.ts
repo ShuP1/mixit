@@ -9,6 +9,10 @@ export default class ErrorLoadable<T, E> extends Loadable<T> {
     this.error = undefined
   }
 
+  get hasError() {
+    return this.error !== undefined
+  }
+
   get isSuccess() {
     return this.loaded && this.error === undefined
   }

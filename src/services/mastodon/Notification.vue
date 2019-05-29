@@ -11,7 +11,7 @@
   .content
     template(v-if="notification.type == 'follow'") Vous suit
     status.reblog(v-else-if="notification.status" :status="notification.status"
-      :showMedia="showMedia" :withAccount="notification.type != 'mention'" @mark="passMark" @vote="passVote")
+      :showMedia="showMedia" :withAccount="notification.type != 'mention'" @mark="passMark" @vote="passVote" @context="passContext")
 
   a.date(@click.stop.prevent="makeDismiss" style="margin-top: -1em") ❌
 </template>
@@ -23,7 +23,7 @@ import FromNowMixin from '@/components/FromNowMixin'
 import ShowMediaMixin from '@/components/ShowMediaMixin'
 import Account from './Account.vue'
 import Status from './Status.vue'
-import { MarkStatus, Notification as INotification, PollVote } from './Types'
+import { MarkStatus, Notification as INotification, PollVote, Status as IStatus } from './Types'
 
 @Component({ components: { Account, Status } })
 export default class Notification extends Mixins(ShowMediaMixin, FromNowMixin) {
@@ -44,6 +44,11 @@ export default class Notification extends Mixins(ShowMediaMixin, FromNowMixin) {
   @Emit('vote')
   passVote(action: PollVote) {
     return action
+  }
+
+  @Emit('context')
+  passContext(status: IStatus) {
+    return status
   }
 
 }

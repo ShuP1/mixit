@@ -94,6 +94,11 @@ export interface Media {
   type: string
 }
 
+export interface Context {
+  ancestors: Status[]
+  descendants: Status[]
+}
+
 export interface Notification {
   id: number
   account: Account

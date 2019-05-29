@@ -36,7 +36,7 @@
           template(v-if="status.card.image")
             img(v-if="showMedia" :src="status.card.image")
             a(v-else-if="status.card.type == 'photo'" :src="status.card.image" target="_blank") Hidden media
-    status.reblog(v-else :status="status.reblog" :showMedia="showMedia" @mark="passMark" @vote="passVote")
+    status.reblog(v-else :status="status.reblog" :showMedia="showMedia" @mark="passMark" @vote="passVote" @context="passContext")
 
   .meta(v-if="!status.reblog")
     a.replies(@click.stop.prevent="makeReply(status)")
@@ -53,8 +53,8 @@
       template(v-else-if="status.visibility == 'unlisted'") 👁
       template(v-else-if="status.visibility == 'private'") ⚿
       template(v-else-if="status.visibility == 'direct'") ✉
-    a.fil(v-if="status.in_reply_to_id" @click.stop.prevent="showReply(status.in_reply_to_id)")
-      | Voir le fil
+    a.fil(@click.stop.prevent="passContext(status)")
+      span.text-icon ⮃
 </template>
 
 <script lang="ts">
@@ -75,28 +75,6 @@ export default class Status extends Mixins(ParseEmojisMixin, ShowMediaMixin, Fro
   @Prop({ type: Boolean, default: true })
   readonly withAccount!: boolean
 
-  showReply(statusId: number) {
-    throw statusId // TODO:
-  }
-
-  makeReply(status: IStatus) {
-    throw status.id // TODO:
-  }
-
-  @Emit('mark')
-  emitMark(id: number, action: 'reblog' | 'favourite', undo = false): MarkStatus {
-    return {
-      id, type: (undo ? 'un' : '') + action as MarkStatusType
-    }
-  }
-
-  @Emit('vote')
-  emitVote(id: number, poll: string, choices: string[]): PollVote {
-    return {
-      id, poll, choices
-    }
-  }
-
   @Emit('mark')
   passMark(action: MarkStatus) {
     return action
@@ -107,19 +85,34 @@ export default class Status extends Mixins(ParseEmojisMixin, ShowMediaMixin, Fro
     return action
   }
 
+  @Emit('context')
+  passContext(status: IStatus) {
+    return status
+  }
+
   makeVote(status: IStatus, elements: HTMLInputElement[]) {
     const choices = Object.values(elements).filter(e => e.checked).map(e => e.value)
     if(choices.length > 0) {
-      this.emitVote(status.id, status.poll!.id, choices)
+      this.passVote({ id: status.id, poll: status.poll!.id, choices })
     }
   }
 
+  makeMark(status: IStatus, action: string, undo: boolean) {
+    this.passMark({
+      id: status.id, type: (undo ? 'un' : '') + action as MarkStatusType
+    })
+  }
+
   makeReblog(status: IStatus) {
-    this.emitMark(status.id, 'reblog', status.reblogged)
+    this.makeMark(status, 'reblog', status.reblogged)
   }
 
   makeFav(status: IStatus) {
-    this.emitMark(status.id, 'favourite', status.favourited)
+    this.makeMark(status, 'favourite', status.favourited)
+  }
+
+  makeReply(status: IStatus) {
+    throw status.id // TODO:
   }
 
 }

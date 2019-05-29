@@ -9,6 +9,10 @@ export default class Loadable<T> {
     this.reset()
   }
 
+  get isLoaded() {
+    return this.loaded
+  }
+
   reset() {
     this.loaded = false
     this.data = undefined

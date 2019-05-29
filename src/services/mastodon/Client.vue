@@ -1,19 +1,36 @@
 <template lang="pug">
 .client
-  .statues(@scroll.passive="onScroll")
+  .statues(@scroll.passive="onScroll" v-show="!hasContext")
     .header(v-if="hasNotifications") Accueil
     success-loadable.list(:loadable="statues")
       template(v-for="status in statues.get()")
-        status(v-if="showStatus(status)" :key="status.id" :status="status" :showMedia="options.showMedia" @mark="onStatusMark" @vote="onPollVote")
+        status(v-if="showStatus(status)" :key="status.id" :status="status" :showMedia="options.showMedia" @mark="onStatusMark" @vote="onPollVote" @context="onShowContext")
       .status(v-show="statues.loadingMore")
         .service-loader
+
+  .context(v-if="hasContext")
+    .header(@click="closeContext")
+      | Context
+      span.date(@click.stop.prevent="closeContext") ❌
+    .list
+      .ancestors
+        template(v-if="targetContext.isSuccess")
+          status(v-for="status in targetContext.get().ancestors" :key="status.id" :status="status" :showMedia="options.showMedia" @mark="onStatusMark" @vote="onPollVote" @context="onShowContext")
+        .service-loader(v-else)
+      status.selected(:status="targetStatus" :showMedia="options.showMedia" @mark="onStatusMark" @vote="onPollVote" @context="closeContext")
+      .descendants
+        template(v-if="targetContext.isSuccess")
+          status(v-for="status in targetContext.get().descendants" :key="status.id" :status="status" :showMedia="options.showMedia" @mark="onStatusMark" @vote="onPollVote" @context="onShowContext")
+        .service-loader(v-else)
+
   .notifications(v-if="hasNotifications")
     .header
       | Notifications
       span.date(@click.stop.prevent="onNotificationsClear") ❌
     .list
       notification(v-for="notification in notifications.get()" :key="notification.id" :notification="notification"
-        :showMedia="options.showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark" @vote="onPollVote")
+        :showMedia="options.showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark" @vote="onPollVote" @context="onShowContext")
+
   .compose-toggle(@click="showCompose = !showCompose") 🖉
   .emoji-list(v-if="options.showMedia" v-show="showCompose && showEmojis")
     img.emoji(v-for="emoji in emojis.get()" @click="addEmoji(emoji.shortcode)" :src="emoji.static_url" :alt="emoji.shortcode" :title="emoji.shortcode")
@@ -45,12 +62,12 @@ import { Component, Mixins, Prop } from 'vue-property-decorator'
 
 import ServiceClient from '@/components/ServiceClient'
 import Lists from '@/helpers/lists/Lists'
-import AxiosLodable from '@/helpers/loadable/AxiosLoadable'
-import AxiosLodableMore from '@/helpers/loadable/AxiosLoadableMore'
+import AxiosLoadable from '@/helpers/loadable/AxiosLoadable'
+import AxiosLoadableMore from '@/helpers/loadable/AxiosLoadableMore'
 import { AUTH, getHeaders, getRest } from './Mastodon.vue'
 import Notification from './Notification.vue'
 import Status from './Status.vue'
-import { Emoji, MarkStatus, Notification as INotification, Options, Poll, PollVote, Status as IStatus, StatusPost, TimelineType } from './Types'
+import { Context, Emoji, MarkStatus, Notification as INotification, Options, Poll, PollVote, Status as IStatus, StatusPost, TimelineType } from './Types'
 
 const STREAMS = {
   home: 'user',
@@ -63,10 +80,13 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
 
   rest = getRest(this.auth, this.options.timeout)
 
-  statues = new AxiosLodableMore<IStatus[], object>()
-  notifications = new AxiosLodable<INotification[], object>()
-  emojis = new AxiosLodable<Emoji[], object>()
+  statues = new AxiosLoadableMore<IStatus[], object>()
+  notifications = new AxiosLoadable<INotification[], object>()
+  emojis = new AxiosLoadable<Emoji[], object>()
   stream?: WebSocket = undefined
+
+  targetStatus: IStatus | null = null
+  targetContext = new AxiosLoadable<Context, object>()
 
   showCompose = false
   compose: StatusPost = {
@@ -88,6 +108,10 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     } else {
       return false
     }
+  }
+
+  get hasContext() {
+    return this.targetStatus && !this.targetContext.hasError
   }
 
   created() {
@@ -125,6 +149,9 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
           post.spoiler_text = this.compose.spoiler_text
         }
       }
+      if(this.targetStatus) {
+        post.in_reply_to_id = this.targetStatus.id
+      }
       this.post('/statuses', post)
       this.compose.status = ''
     }
@@ -159,8 +186,20 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
   onPollVote(action: PollVote) {
     this.post<Poll>(`/polls/${action.poll}/votes`, { choices: action.choices })
       .then(res => this.statues.with(
-        sts => sts.find(st => st.id == action.id)!.poll = res.data
+        sts => sts.find(st => st.id === action.id)!.poll = res.data
       ))
+  }
+
+  onShowContext(status: IStatus) {
+    this.statues.with(sts => {
+      this.targetStatus = status
+      this.targetContext.load(this.get(`/statuses/${status.id}/context`), undefined, true)
+    })
+  }
+
+  closeContext() {
+    this.targetStatus = null
+    this.targetContext.reset()
   }
 
   onNotificationDismiss(id: number) {
@@ -230,11 +269,21 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     position: relative
     .header, .emoji-list
       @include main-tile
+    .header
+      margin-bottom: 0
     .list
       @include group-tile
-    .statues, .notifications, .emoji-list
-      flex: 1
+      flex-grow: 1
+    .statues, .notifications, .context, .emoji-list
+      flex-grow: 1
+      display: flex
+      flex-direction: column
       overflow-y: auto
+    .ancestors, .descendants
+      .status
+        font-size: .9em
+        padding: $borderRadius
+        @include tile
     .compose-toggle
       position: absolute
       bottom: .5em
@@ -309,6 +358,8 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
       .meta
         margin-left: 1em + $avatarSize
         font-size: .8em
+        .fil
+          float: right
         a
           margin: 0 .5em
 
