@@ -11,13 +11,17 @@ export interface Account {
 
 export type TimelineType = 'home' | 'local' | 'public'
 
-export interface Options {
+export interface BusOptions {
+  showMedia: boolean
+  showCounts: boolean
+}
+
+export interface Options extends BusOptions {
   timeout: number
   reconnect: boolean
   buffer: number
   reblog: boolean
   reply: boolean
-  showMedia: boolean
   timeline: TimelineType
 }
 
@@ -99,10 +103,11 @@ export interface Context {
   descendants: Status[]
 }
 
+export type NotificationType = 'follow' | 'mention' | 'reblog' | 'favourite'
 export interface Notification {
   id: number
   account: Account
-  type: string
+  type: NotificationType
   created_at: string
   status?: Status
 }

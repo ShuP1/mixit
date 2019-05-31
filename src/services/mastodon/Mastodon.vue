@@ -5,13 +5,14 @@
       | {{ serviceName }}: 
       loadable-inline(:loadable="account")
         template(#success)
-          span(v-html="parseEmojis(account.data.display_name, account.data.emojis, params.showMedia) + '@' + server", params.showMedia)
+          span(v-html="parseEmojis(account.data.display_name, account.data.emojis, params.showMedia) + '@' + server")
     template(#settings)
       setting-boolean(:id="'reconnect'" :title="'Reconnect'" :value="params.reconnect" @change="saveOptionCouple")
       setting-boolean(:id="'reblog'" :title="'Show reblogs'" :value="params.reblog" @change="saveOptionCouple")
       setting-boolean(:id="'reply'" :title="'Show replies'" :value="params.reply" @change="saveOptionCouple")
       setting-int(:id="'buffer'" :title="'Buffer size'" :value="params.buffer" @change="saveOptionCouple")
       setting-boolean(:id="'showMedia'" :title="'Show medias'" :value="params.showMedia" @change="saveOptionCouple")
+      setting-boolean(:id="'showCounts'" :title="'Show counts'" :value="params.showCounts" @change="saveOptionCouple")
       setting-select(:id="'timeline'" :title="'Timeline'" :value="params.timeline" @change="saveOptionCouple" :options="['home', 'local', 'public']")
   loadable-block.service-content(:loadable="account")
     template(#success)
@@ -58,7 +59,7 @@ export default class Mastodon extends Mixins<AccountService<Account, object>>(Ac
 
   get params(): Options {
     return { timeout: 5000, reconnect: false, buffer: 20, reblog: true, reply: false,
-      showMedia: true, timeline: 'home', ...this.options }
+      showMedia: true, showCounts: true, timeline: 'home', ...this.options }
   }
 
   get isSetup() {

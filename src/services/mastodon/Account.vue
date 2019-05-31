@@ -8,15 +8,19 @@ a.account(target="_blank" :href="account.url")
 <script lang="ts">
 import { Component, Mixins, Prop } from 'vue-property-decorator'
 
-import ShowMediaMixin from '@/components/ShowMediaMixin'
+import BusMixin from './BusMixin'
 import { ParseEmojisMixin } from './ParseEmojisMixin'
 import { Account as IAccount } from './Types'
 
 @Component
-export default class Account extends Mixins(ParseEmojisMixin, ShowMediaMixin) {
+export default class Account extends Mixins(ParseEmojisMixin, BusMixin) {
 
   @Prop(Object)
   readonly account!: IAccount
+
+  get showMedia() {
+    return this.bus.showMedia
+  }
 
   avatarStyle(avatar: string) {
     return {

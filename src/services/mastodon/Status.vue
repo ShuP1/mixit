@@ -1,8 +1,8 @@
 <template lang="pug">
 .status
-  account(v-if="withAccount" :account="status.account" :showMedia="showMedia")
+  account(v-if="withAccount" :account="status.account" :bus="bus")
 
-  span.text-icon.letter(v-if="status.reblog") ⟳
+  span.text-icon.letter(v-if="status.reblog") {{ reblogIcon }}
 
   a.date(target="_blank" :href="status.uri") {{ fromNow(status.created_at) }}
 
@@ -12,9 +12,10 @@
         {{ status.spoiler_text || 'Spoiler' }} {{ status.sensitive ? '&rarr;' : '&darr;' }}
       div(v-if="!status.spoiler_text || !status.sensitive")
         .text(v-html="parseEmojis(status.content, status.emojis, showMedia)")
+
         .poll(v-if="status.poll")
           .date {{ fromNow(status.poll.expires_at) }}
-          form.options(@submit.prevent="makeVote(status, $event.target.elements)")
+          form.options(@submit.prevent="makeVote($event.target.elements)")
             .option(v-for="option in status.poll.options")
               input(v-if="!status.poll.expired && !status.poll.voted" :type="status.poll.multiple ? 'checkbox' : 'radio'" :id="status.poll.id + option.title" :value="option.title" :name="status.poll.id")
               label(:for="status.poll.id + option.title")
@@ -23,12 +24,14 @@
             button(v-if="status.poll.voted") voted
             button(v-else-if="status.poll.expired") expired
             input(v-else type="submit" value="vote")
+
         a.media(v-for="media in status.media_attachments" :href="media.url" target="_blank")
-          template(v-if="showMedia")
+          template(v-if="bus.showMedia")
             img(v-if="media.type == 'image' || media.type == 'gifv'" :src="media.preview_url" :alt="media.description" :title="media.description")
             template(v-else) Wrong type
             .gif(v-if="media.type == 'gifv'") GIF
           template(v-else) Hidden media {{ media.description }}
+
         a.card(v-if="status.card" :href="status.card.url" target="_blank")
           a.provider(v-if="status.card.provider_name" :src="status.card.provider_url" target="_blank") {{ status.card.provider_name }}
           .title {{ status.card.title }}
@@ -36,38 +39,29 @@
           template(v-if="status.card.image")
             img(v-if="showMedia" :src="status.card.image")
             a(v-else-if="status.card.type == 'photo'" :src="status.card.image" target="_blank") Hidden media
-    status.reblog(v-else :status="status.reblog" :showMedia="showMedia" @mark="passMark" @vote="passVote" @context="passContext")
+
+    status.reblog(v-else :status="status.reblog" :bus="bus")
 
   .meta(v-if="!status.reblog")
-    a.replies(@click.stop.prevent="makeReply(status)")
-      span.text-icon ✉
-      | {{ status.replies_count }}
-    a.reblogs(:class="{ colored: status.reblogged }" @click.stop.prevent="makeReblog(status)")
-      span.text-icon ⟳
-      | {{ status.reblogs_count }}
-    a.favourites(:class="{ colored: status.favourited }" @click.stop.prevent="makeFav(status)")
-      span.text-icon ⚝
-      | {{ status.favourites_count }}
-    a.visibility
-      template(v-if="status.visibility == 'public'") ◍
-      template(v-else-if="status.visibility == 'unlisted'") 👁
-      template(v-else-if="status.visibility == 'private'") ⚿
-      template(v-else-if="status.visibility == 'direct'") ✉
-    a.fil(@click.stop.prevent="passContext(status)")
-      span.text-icon ⮃
+    status-meta(v-for="meta in metas" :key="meta.name" :meta="meta" :bus="bus")
+    a {{ statusVisibilityIcon }}
+    a.fil(@click.stop.prevent="showContext")
+      | {{ contextIcon }}
 </template>
 
 <script lang="ts">
 import { Component, Emit, Mixins, Prop } from 'vue-property-decorator'
 
 import FromNowMixin from '@/components/FromNowMixin'
-import ShowMediaMixin from '@/components/ShowMediaMixin'
 import Account from './Account.vue'
+import BusMixin, { LocalEvents } from './BusMixin'
+import { Context, Notification, Visibility } from './Icons'
 import { ParseEmojisMixin } from './ParseEmojisMixin'
+import StatusMeta from './StatusMeta.vue'
 import { Card, MarkStatus, MarkStatusType, Poll, PollVote, Status as IStatus } from './Types'
 
-@Component({ components: { Account } })
-export default class Status extends Mixins(ParseEmojisMixin, ShowMediaMixin, FromNowMixin) {
+@Component({ components: { Account, StatusMeta } })
+export default class Status extends Mixins(ParseEmojisMixin, FromNowMixin, BusMixin) {
 
   @Prop(Object)
   readonly status!: IStatus
@@ -75,44 +69,61 @@ export default class Status extends Mixins(ParseEmojisMixin, ShowMediaMixin, Fro
   @Prop({ type: Boolean, default: true })
   readonly withAccount!: boolean
 
-  @Emit('mark')
-  passMark(action: MarkStatus) {
-    return action
+  get statusVisibilityIcon() {
+    return Visibility[this.status.visibility] || '?'
   }
 
-  @Emit('vote')
-  passVote(action: PollVote) {
-    return action
+  get reblogIcon() {
+    return Notification.reblog
   }
 
-  @Emit('context')
-  passContext(status: IStatus) {
-    return status
-  }
-
-  makeVote(status: IStatus, elements: HTMLInputElement[]) {
-    const choices = Object.values(elements).filter(e => e.checked).map(e => e.value)
-    if(choices.length > 0) {
-      this.passVote({ id: status.id, poll: status.poll!.id, choices })
+  get contextIcon() {
+    if(this.status.in_reply_to_id) {
+      return Context[this.status.replies_count ? 'full' : 'up']
+    } else {
+      return Context[this.status.replies_count ? 'down' : 'no']
     }
   }
 
-  makeMark(status: IStatus, action: string, undo: boolean) {
-    this.passMark({
-      id: status.id, type: (undo ? 'un' : '') + action as MarkStatusType
+  get showMedia() {
+    return this.bus.$data.showMedia
+  }
+
+  get metas() {
+    return [
+      { name: 'reply', click: this.makeReply, active: false, icon: Notification.mention, count: this.status.replies_count },
+      { name: 'reblog', click: this.makeReblog, active: this.status.reblogged, icon: Notification.reblog, count: this.status.reblogs_count },
+      { name: 'fav', click: this.makeFav, active: this.status.favourited, icon: Notification.favourite, count: this.status.favourites_count }
+    ]
+  }
+
+  makeVote(elements: HTMLInputElement[]) {
+    const choices = Object.values(elements).filter(e => e.checked).map(e => e.value)
+    if(choices.length > 0) {
+      this.bus.$emit(LocalEvents.Vote, { id: this.status.id, poll: this.status.poll!.id, choices })
+    }
+  }
+
+  makeMark(action: string, undo: boolean) {
+    this.bus.$emit(LocalEvents.Mark, {
+      id: this.status.id, type: (undo ? 'un' : '') + action as MarkStatusType
     })
   }
 
-  makeReblog(status: IStatus) {
-    this.makeMark(status, 'reblog', status.reblogged)
+  makeReblog() {
+    this.makeMark('reblog', this.status.reblogged)
   }
 
-  makeFav(status: IStatus) {
-    this.makeMark(status, 'favourite', status.favourited)
+  makeFav() {
+    this.makeMark('favourite', this.status.favourited)
   }
 
-  makeReply(status: IStatus) {
-    throw status.id // TODO:
+  showContext() {
+    this.bus.$emit(LocalEvents.Context, this.status)
+  }
+
+  makeReply() {
+    throw this // TODO:
   }
 
 }

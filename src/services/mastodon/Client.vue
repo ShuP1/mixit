@@ -4,34 +4,34 @@
     .header(v-if="hasNotifications") Accueil
     success-loadable.list(:loadable="statues")
       template(v-for="status in statues.get()")
-        status(v-if="showStatus(status)" :key="status.id" :status="status" :showMedia="options.showMedia" @mark="onStatusMark" @vote="onPollVote" @context="onShowContext")
+        status(v-if="showStatus(status)" :key="status.id" :status="status" :bus="bus")
       .status(v-show="statues.loadingMore")
         .service-loader
 
   .context(v-if="hasContext")
     .header(@click="closeContext")
       | Context
-      span.date(@click.stop.prevent="closeContext") ❌
+      span.date(@click.stop.prevent="closeContext") {{ icons.close }}
     .list
       .ancestors
         template(v-if="targetContext.isSuccess")
-          status(v-for="status in targetContext.get().ancestors" :key="status.id" :status="status" :showMedia="options.showMedia" @mark="onStatusMark" @vote="onPollVote" @context="onShowContext")
+          status(v-for="status in targetContext.get().ancestors" :key="status.id" :status="status" :bus="bus")
         .service-loader(v-else)
-      status.selected(:status="targetStatus" :showMedia="options.showMedia" @mark="onStatusMark" @vote="onPollVote" @context="closeContext")
+      status.selected(:status="targetStatus" :bus="bus")
       .descendants
         template(v-if="targetContext.isSuccess")
-          status(v-for="status in targetContext.get().descendants" :key="status.id" :status="status" :showMedia="options.showMedia" @mark="onStatusMark" @vote="onPollVote" @context="onShowContext")
+          status(v-for="status in targetContext.get().descendants" :key="status.id" :status="status" :bus="bus")
         .service-loader(v-else)
 
   .notifications(v-if="hasNotifications")
     .header
       | Notifications
-      span.date(@click.stop.prevent="onNotificationsClear") ❌
+      span.date(@click.stop.prevent="onNotificationsClear") {{ icons.close }}
     .list
       notification(v-for="notification in notifications.get()" :key="notification.id" :notification="notification"
-        :showMedia="options.showMedia" @dismiss="onNotificationDismiss" @mark="onStatusMark" @vote="onPollVote" @context="onShowContext")
+        @dismiss="onNotificationDismiss" :bus="bus")
 
-  .compose-toggle(@click="showCompose = !showCompose") 🖉
+  .compose-toggle(@click="showCompose = !showCompose") {{ icons.compose }}
   .emoji-list(v-if="options.showMedia" v-show="showCompose && showEmojis")
     img.emoji(v-for="emoji in emojis.get()" @click="addEmoji(emoji.shortcode)" :src="emoji.static_url" :alt="emoji.shortcode" :title="emoji.shortcode")
   .compose(v-show="showCompose")
@@ -48,26 +48,26 @@
         input(v-show="compose.sensitive" v-model="compose.spoiler_text" placeholder="content warning")
       .visibility
         select(v-model="compose.visibility")
-          option(value="public") ◍
-          option(value="unlisted") 👁
-          option(value="private") ⚿
-          option(value="direct") ✉
+          option(v-for="(icon, value) in visibilities" :value="value") {{ icon }}
         span.note {{ compose.visibility }}
       button(@click="sendStatus") Toot
 </template>
 
 <script lang="ts">
 import axios, { AxiosResponse } from 'axios'
-import { Component, Mixins, Prop } from 'vue-property-decorator'
+import { Component, Mixins, Prop, Vue, Watch } from 'vue-property-decorator'
 
+import LocalBusMixin from '@/components/LocalBusMixin'
 import ServiceClient from '@/components/ServiceClient'
 import Lists from '@/helpers/lists/Lists'
 import AxiosLoadable from '@/helpers/loadable/AxiosLoadable'
 import AxiosLoadableMore from '@/helpers/loadable/AxiosLoadableMore'
+import { LocalEvents } from './BusMixin'
+import { Icons, Visibility } from './Icons'
 import { AUTH, getHeaders, getRest } from './Mastodon.vue'
 import Notification from './Notification.vue'
 import Status from './Status.vue'
-import { Context, Emoji, MarkStatus, Notification as INotification, Options, Poll, PollVote, Status as IStatus, StatusPost, TimelineType } from './Types'
+import { BusOptions, Context, Emoji, MarkStatus, Notification as INotification, Options, Poll, PollVote, Status as IStatus, StatusPost, TimelineType } from './Types'
 
 const STREAMS = {
   home: 'user',
@@ -97,6 +97,11 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
   }
   showEmojis = false // MAYBE: show tabs with unicode emoticons
 
+  bus = new Vue({ data: {
+    showMedia: this.options.showMedia,
+    showCounts: this.options.showCounts
+  } })
+
   get hasNotifications() {
     if(!this.notifications.isSuccess) {
       return false
@@ -114,12 +119,31 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     return this.targetStatus && !this.targetContext.hasError
   }
 
+  get visibilities() {
+    return Visibility
+  }
+
+  get icons() {
+    return Icons
+  }
+
   created() {
-    this.$watch('options.timeline', this.init, { immediate: true })
+    new Map<string, (arg: any) => void>([
+      [ LocalEvents.Mark, this.onStatusMark ],
+      [ LocalEvents.Vote, this.onPollVote ],
+      [ LocalEvents.Context, this.onHandleContext ]
+    ]).forEach((handler, name) => this.bus.$on(name, handler))
+
     this.notifications.load(this.get<INotification[]>('/notifications'))
     this.emojis.load(this.get<Emoji[]>('/custom_emojis'), res => Lists.sort(res.data, e => e.shortcode, Lists.stringCompare))
   }
 
+  @Watch('options', { deep: true })
+  change(o: any) {
+    Object.keys(this.bus.$data).forEach(key => this.bus.$data[key] = o[key])
+  }
+
+  @Watch('options.timeline', { immediate: true })
   init() {
     this.statues.load(this.getTimeline())
     this.setupStream()
@@ -190,7 +214,12 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
       ))
   }
 
-  onShowContext(status: IStatus) {
+  onHandleContext(status: IStatus) {
+    if(this.targetStatus && this.targetStatus.id === status.id) {
+      this.closeContext()
+      return
+    }
+
     this.statues.with(sts => {
       this.targetStatus = status
       this.targetContext.load(this.get(`/statuses/${status.id}/context`), undefined, true)
