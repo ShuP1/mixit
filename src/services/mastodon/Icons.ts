@@ -9,7 +9,8 @@ export const Notification = {
   mention: '✉',
   reblog: '⟳',
   favourite: '⚝',
-  follow: '👁'
+  follow: '👁',
+  poll: '✓'
 }
 
 export const Icons = {

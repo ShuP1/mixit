@@ -1,16 +1,18 @@
 <template lang="pug">
 .notification
+
   account(:account="notification.account" :bus="bus")
+  a.date
+    | {{ fromNow(notification.created_at) }}
+    span(@click.stop.prevent="makeDismiss") {{ closeIcon }}
 
   span.colored.text-icon.letter {{ notificationTypeIcon }}
-  span.date {{ fromNow(notification.created_at) }}
 
   .content
     template(v-if="notification.type == 'follow'") Vous suit
     status.reblog(v-else-if="notification.status" :status="notification.status"
       :withAccount="notification.type != 'mention'" :bus="bus")
 
-  a.date(@click.stop.prevent="makeDismiss" style="margin-top: -1em") {{ closeIcon }}
 </template>
 
 <script lang="ts">

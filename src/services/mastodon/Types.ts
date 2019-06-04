@@ -103,7 +103,7 @@ export interface Context {
   descendants: Status[]
 }
 
-export type NotificationType = 'follow' | 'mention' | 'reblog' | 'favourite'
+export type NotificationType = 'follow' | 'mention' | 'reblog' | 'favourite' | 'poll'
 export interface Notification {
   id: number
   account: Account

@@ -303,11 +303,13 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     .list
       @include group-tile
       flex-grow: 1
+      overflow-y: scroll
     .statues, .notifications, .context, .emoji-list
       flex-grow: 1
       display: flex
       flex-direction: column
-      overflow-y: auto
+      overflow: inherit
+      height: 100%
     .ancestors, .descendants
       .status
         font-size: .9em
