@@ -1,6 +1,6 @@
 <template lang="pug">
 .client
-  .statues(@scroll.passive="onScroll" v-show="!hasContext")
+  .statues(v-show="!hasContext" @scroll.passive="onScroll")
     .header(v-if="hasNotifications") Accueil
     success-loadable.list(:loadable="statues")
       template(v-for="status in statues.get()")
@@ -303,12 +303,11 @@ export default class Client extends Mixins<ServiceClient<Options>>(ServiceClient
     .list
       @include group-tile
       flex-grow: 1
-      overflow-y: scroll
     .statues, .notifications, .context, .emoji-list
       flex-grow: 1
       display: flex
       flex-direction: column
-      overflow: inherit
+      overflow-y: scroll
       height: 100%
     .ancestors, .descendants
       .status
